@@ -5,9 +5,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
+import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.*;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,6 +22,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 
@@ -58,7 +61,7 @@ public class CameraActivity extends Activity {
         this.takePictureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.e(TAG,"No feature associated for now");
+                setImagesCapture();
             }
         });
     }
@@ -135,7 +138,6 @@ public class CameraActivity extends Activity {
                     cameraCaptureSession = captureSession;
                     updatePreview();
                 }
-
                 @Override
                 public void onConfigureFailed(CameraCaptureSession captureSession) {
                     Toast.makeText(CameraActivity.this, "Configuration change", Toast.LENGTH_SHORT).show();
@@ -218,5 +220,26 @@ public class CameraActivity extends Activity {
         //closeCamera();
         stopBackgroundThread();
         super.onPause();
+    }
+
+    protected void setImagesCapture(){
+        Log.e(TAG,"test");
+        this.imageReader = ImageReader.newInstance(this.imageDimension.getWidth(), this.imageDimension.getHeight(), ImageFormat.JPEG, 1);
+        ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
+            @Override
+            public void onImageAvailable(ImageReader reader) {
+                Image image = reader.acquireLatestImage();
+                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                byte[] bytes = new byte[buffer.capacity()];
+                buffer.get(bytes);
+                int frameWidth = imageDimension.getWidth();
+                int frameHeight = imageDimension.getHeight();
+                int rgb[] = new int[frameWidth * frameHeight];
+                RGBDecoder.decodeYUV420SP(rgb,bytes,frameWidth,frameHeight);
+                for(int i = 0; i<rgb.length;i++){
+                    Log.e(TAG,Integer.toString(rgb[i]));
+                }
+            }
+        };
     }
 }

@@ -13,6 +13,15 @@
         android:layout_alignParentTop="true"
         android:layout_marginTop="-1dp" />
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="400dp"
+        android:layout_height="328dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="275dp"
+        android:layout_marginBottom="275dp"
+        android:visibility="invisible" />
+
     <Button
         android:id="@+id/btn_takepicture"
         android:layout_width="140dp"
@@ -22,16 +31,6 @@
         android:layout_marginTop="16dp"
         android:layout_marginBottom="275dp"
         android:text="@string/take_picture" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="389dp"
-        android:layout_height="282dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="275dp"
-        android:layout_marginBottom="275dp"
-        android:indeterminate="true"
-        android:visibility="invisible" />
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/intensityGraph"

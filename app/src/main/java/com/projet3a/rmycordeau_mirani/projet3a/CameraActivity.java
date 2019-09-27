@@ -316,16 +316,17 @@ public class CameraActivity extends Activity {
             @Override
             public void run() {
                 GraphView graphView = findViewById(R.id.intensityGraph);
+                if(!graphView.getSeries().isEmpty()){ // checking if the graphic contains series
+                    graphView.removeAllSeries();
+                }
                 DataPoint[] values = new DataPoint[graphData.length];
                 for(int i = 0; i < graphData.length; i++){
                     values[i] = new DataPoint(i,graphData[i]);
                 }
                 LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);
-                series.setTitle("Picture intensity");
                 graphView.addSeries(series);
                 graphView.setVisibility(View.VISIBLE);
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.INVISIBLE);
+                findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
             }
         });
     }

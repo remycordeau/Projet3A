@@ -5,19 +5,40 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.projet3a.rmycordeau_mirani.projet3a.CameraActivity">
+
     <TextureView
         android:id="@+id/texture"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/btn_takepicture"
-        android:layout_alignParentTop="true"/>
+        android:layout_height="183dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="-1dp" />
+
     <Button
         android:id="@+id/btn_takepicture"
-        android:layout_width="wrap_content"
+        android:layout_width="140dp"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginBottom="275dp"
         android:text="@string/take_picture" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="389dp"
+        android:layout_height="282dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="275dp"
+        android:layout_marginBottom="275dp"
+        android:indeterminate="true"
+        android:visibility="invisible" />
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/intensityGraph"
+        android:layout_width="match_parent"
+        android:layout_height="267dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="0dp"
+        android:visibility="invisible"/>
 </RelativeLayout>

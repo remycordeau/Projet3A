@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.*;
@@ -15,7 +14,6 @@ import android.media.ImageReader;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.HandlerThread;
-import android.os.Message;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -23,10 +21,11 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,10 +49,10 @@ public class CameraActivity extends Activity {
     private Size imageDimension;
     private ImageReader imageReader;
     private static final int REQUEST_CAMERA_PERMISSION = 200;
-    private boolean flashSupported;
     private HandlerThread backgroundThread;
     private android.os.Handler backgroundHandler;
     private ContextWrapper contextWrapper;
+    private double[] graphData = null;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -67,14 +66,15 @@ public class CameraActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera_layout);
         this.contextWrapper = new ContextWrapper(getApplicationContext());
-        this.textureView = (TextureView) findViewById(R.id.texture);
+        this.textureView = findViewById(R.id.texture);
         assert this.textureView != null;
         this.textureView.setSurfaceTextureListener(this.textureListener);
-        this.takePictureButton =  (Button) findViewById(R.id.btn_takepicture);
+        this.takePictureButton = findViewById(R.id.btn_takepicture);
         assert this.takePictureButton != null;
         this.takePictureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                displayProcessingCircle();
                 setImagesCapture();
             }
         });
@@ -177,12 +177,17 @@ public class CameraActivity extends Activity {
     private void openCamera(){
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try{
+            int version = Build.VERSION.SDK_INT;
+            if(version <= 22){
+                Log.e(TAG,"Cannot activate flash light, API level too low");
+            }else{
+                cameraManager.setTorchMode(this.cameraId,true);
+            }
             this.cameraId = cameraManager.getCameraIdList()[0];
             CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(this.cameraId);
             StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;
             this.imageDimension =  map.getOutputSizes(SurfaceTexture.class)[0];
-            int version = Build.VERSION.SDK_INT;
             if(version > 22){
                 requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
                 if(this.contextWrapper.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
@@ -261,20 +266,21 @@ public class CameraActivity extends Activity {
             final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(reader.getSurface());
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-            // Orientation
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
                     Image image = reader.acquireLatestImage();
+                    int width = image.getWidth();
+                    int height = image.getHeight();
                     ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                     byte[] bytes = new byte[buffer.capacity()];
                     buffer.get(bytes);
-                    int[] rgb =  RGBDecoder.getRGBCode(bytes,image.getWidth(),image.getHeight());
+                    int[] rgb =  RGBDecoder.getRGBCode(bytes,width,height);
                     double[] intensity = RGBDecoder.getImageIntensity(rgb);
-                    Log.e(TAG,rgb[0]+" "+rgb[10]+" "+rgb[40]);
-                    Log.e(TAG,intensity[0]+" "+intensity[10]+" "+intensity[40]);
+                    graphData = RGBDecoder.computeIntensityMean(intensity,width,height);
+                    updateUIGraph();
                 }
             };
             reader.setOnImageAvailableListener(readerListener, this.backgroundHandler);
@@ -302,5 +308,35 @@ public class CameraActivity extends Activity {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    private void updateUIGraph() {
+        assert this.graphData != null;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                GraphView graphView = findViewById(R.id.intensityGraph);
+                DataPoint[] values = new DataPoint[graphData.length];
+                for(int i = 0; i < graphData.length; i++){
+                    values[i] = new DataPoint(i,graphData[i]);
+                }
+                LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);
+                series.setTitle("Picture intensity");
+                graphView.addSeries(series);
+                graphView.setVisibility(View.VISIBLE);
+                ProgressBar progressBar = findViewById(R.id.progressBar);
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+        });
+    }
+
+    private void displayProcessingCircle(){
+     runOnUiThread(new Runnable() {
+         @Override
+         public void run() {
+             ProgressBar progressBar = findViewById(R.id.progressBar);
+             progressBar.setVisibility(View.VISIBLE);
+         }
+     });
     }
 }

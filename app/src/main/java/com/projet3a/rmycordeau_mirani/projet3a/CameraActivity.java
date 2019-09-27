@@ -24,6 +24,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import java.nio.ByteBuffer;
@@ -248,6 +249,7 @@ public class CameraActivity extends Activity {
         }
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
+
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(this.cameraDevice.getId());
             Size[] jpegSizes = null;
             if (characteristics != null) {
@@ -259,6 +261,7 @@ public class CameraActivity extends Activity {
                 width = jpegSizes[0].getWidth();
                 height = jpegSizes[0].getHeight();
             }
+
             ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
             List<Surface> outputSurfaces = new ArrayList<Surface>(2);
             outputSurfaces.add(reader.getSurface());
@@ -268,6 +271,7 @@ public class CameraActivity extends Activity {
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
+
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
@@ -292,6 +296,7 @@ public class CameraActivity extends Activity {
                     createCameraPreview();
                 }
             };
+
             cameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(CameraCaptureSession session) {
@@ -311,14 +316,25 @@ public class CameraActivity extends Activity {
     }
 
     private void updateUIGraph() {
+
         assert this.graphData != null;
         runOnUiThread(new Runnable() {
+
             @Override
             public void run() {
                 GraphView graphView = findViewById(R.id.intensityGraph);
-                if(!graphView.getSeries().isEmpty()){ // checking if the graphic contains series
+
+                //setting up X and Y axis title
+                GridLabelRenderer gridLabelRenderer = graphView.getGridLabelRenderer();
+                gridLabelRenderer.setHorizontalAxisTitle("Pixel position");
+                gridLabelRenderer.setVerticalAxisTitle("Pixel intensity");
+
+                // checking if the graphic contains series
+                if(!graphView.getSeries().isEmpty()){
                     graphView.removeAllSeries();
                 }
+
+                //adding series to graph
                 DataPoint[] values = new DataPoint[graphData.length];
                 for(int i = 0; i < graphData.length; i++){
                     values[i] = new DataPoint(i,graphData[i]);

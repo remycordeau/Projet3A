@@ -13,8 +13,7 @@ public class App extends Activity {
         final String TAG = "APP";
         int version = Build.VERSION.SDK_INT;
         Log.e(TAG, "API version : "+version);
-        CameraActivity activity = new CameraActivity();
+        MainActivity activity = new MainActivity();
         activity.onCreate(savedInstanceState);
-
     }
 }

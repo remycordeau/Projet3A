@@ -117,8 +117,10 @@ public class CameraActivity extends Activity {
 
         @Override
         public void onError(CameraDevice camera, int i) {
-            cameraDevice.close();
-            cameraDevice = null;
+            if(cameraDevice != null){
+                cameraDevice.close();
+                cameraDevice = null;
+            }
         }
     };
 
@@ -237,7 +239,7 @@ public class CameraActivity extends Activity {
     @Override
     protected void onPause() {
         Log.e(TAG, "onPause");
-        //closeCamera();
+        closeCamera();
         stopBackgroundThread();
         super.onPause();
     }

@@ -35,7 +35,7 @@ public class RGBDecoder {
     public static double[] getImageIntensity(int[] rgb){
         double [] intensity = new double[rgb.length];
         for(int i = 0; i < intensity.length; i++){
-            intensity[i] = (0.21* Color.red(rgb[i])+0.72*Color.green(rgb[i])+0.07*Color.blue(rgb[i]));
+            intensity[i] = (0.2126* Color.red(rgb[i])+0.7152*Color.green(rgb[i])+0.0722*Color.blue(rgb[i]));
         }
         return intensity;
     }

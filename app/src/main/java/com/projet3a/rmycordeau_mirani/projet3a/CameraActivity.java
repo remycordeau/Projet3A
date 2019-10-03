@@ -270,8 +270,10 @@ public class CameraActivity extends Activity {
             outputSurfaces.add(new Surface(textureView.getSurfaceTexture()));
             final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(reader.getSurface());
-            captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_OFF);
-            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,CameraMetadata.CONTROL_AF_MODE_OFF);
+
+            //disabling automatics adjustments of camera (maybe call AE_MODE_OFF/AE_MODE_LOCKED
+            //captureBuilder.set(CaptureRequest.CONTROL_AE_LOCK,true);
+            //captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_OFF);
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
@@ -304,6 +306,11 @@ public class CameraActivity extends Activity {
                 @Override
                 public void onConfigured(CameraCaptureSession session) {
                     try {
+                        captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,CameraMetadata.CONTROL_AF_MODE_OFF);
+                        captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
+                        captureBuilder.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF);
+                        captureBuilder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF);
+                        captureBuilder.set(CaptureRequest.LENS_FOCUS_DISTANCE, .2f);
                         session.capture(captureBuilder.build(), captureListener,backgroundHandler);
                     } catch (CameraAccessException e) {
                         e.printStackTrace();

@@ -183,6 +183,9 @@ public class CameraActivity extends Activity {
             int version = Build.VERSION.SDK_INT;
             if(version <= 22){
                 Log.e(TAG,"Cannot activate flash light, API level too low");
+                Toast flashError = Toast.makeText(CameraActivity.this,"Cannot activate flash light, API level too low",Toast.LENGTH_LONG);
+                flashError.show();
+
             }else{
                 cameraManager.setTorchMode(this.cameraId,true);
             }
@@ -363,6 +366,7 @@ public class CameraActivity extends Activity {
          public void run() {
              ProgressBar progressBar = findViewById(R.id.progressBar);
              progressBar.setVisibility(View.VISIBLE);
+             Toast.makeText(CameraActivity.this,"Creating graph...",Toast.LENGTH_SHORT).show();
          }
      });
     }

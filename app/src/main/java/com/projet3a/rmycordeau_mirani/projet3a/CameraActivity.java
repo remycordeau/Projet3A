@@ -13,6 +13,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
@@ -27,10 +28,18 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -41,6 +50,9 @@ public class CameraActivity extends Activity {
 
     private static final String TAG = "Camera Activity";
     private Button takePictureButton;
+    private Button saveReferenceButton;
+    private Button saveDataButton;
+    private Boolean isReferenceSaved = false;
     private TextureView textureView;
     private String cameraId;
     protected CameraDevice cameraDevice;
@@ -55,6 +67,7 @@ public class CameraActivity extends Activity {
     private ContextWrapper contextWrapper;
     private double[] graphData = null;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
@@ -64,12 +77,19 @@ public class CameraActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera_layout);
         this.contextWrapper = new ContextWrapper(getApplicationContext());
+        enableListeners();
+    }
+
+    private void enableListeners() {
+
         this.textureView = findViewById(R.id.texture);
         assert this.textureView != null;
         this.textureView.setSurfaceTextureListener(this.textureListener);
+
         this.takePictureButton = findViewById(R.id.btn_takepicture);
         assert this.takePictureButton != null;
         this.takePictureButton.setOnClickListener(new View.OnClickListener() {
@@ -77,6 +97,19 @@ public class CameraActivity extends Activity {
             public void onClick(View view) {
                 displayProcessingCircle();
                 setImagesCapture();
+            }
+        });
+
+        this.saveReferenceButton = findViewById(R.id.save_reference_button);
+        assert this.saveReferenceButton !=null;
+        this.saveReferenceButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    savePicture();
+                }catch (IOException e){
+                    Log.e(TAG,e.toString());
+                }
             }
         });
     }
@@ -381,5 +414,28 @@ public class CameraActivity extends Activity {
              Toast.makeText(CameraActivity.this,"Creating graph...",Toast.LENGTH_SHORT).show();
          }
      });
+    }
+
+    private void savePicture() throws IOException{
+        if(this.graphData == null){
+            Toast.makeText(CameraActivity.this,"Please press Take Picture button before saving",Toast.LENGTH_SHORT).show();
+        }else{
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH:mm:ss", Locale.getDefault());
+            String currentDateandTime = sdf.format(new Date());
+            OutputStream outputStream = null;
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),"savedPicture_"+currentDateandTime+".txt");
+            try{
+                outputStream = new FileOutputStream(file,false);
+                for(int i = 0; i < this.graphData.length; i++){
+                    outputStream.write((i+",").getBytes());
+                    outputStream.write((this.graphData[i]+"\n").getBytes());
+                }
+            }finally {
+                if(outputStream != null){
+                    outputStream.close();
+                    Toast.makeText(CameraActivity.this, "File successfully saved",Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 }

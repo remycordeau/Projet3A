@@ -148,11 +148,18 @@ public class CameraActivity extends Activity {
             Surface surface = new Surface(texture);
             this.captureRequestBuilder = this.cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             this.captureRequestBuilder.addTarget(surface);
+            final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
+                @Override
+                public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+                    super.onCaptureCompleted(session, request, result);
+                }
+            };
             this.cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(CameraCaptureSession captureSession) {
                     if(cameraDevice == null) return;
                     cameraCaptureSession = captureSession;
+                    disableAutomatics(captureRequestBuilder,captureSession,captureListener);
                     updatePreview();
                 }
                 @Override
@@ -273,10 +280,6 @@ public class CameraActivity extends Activity {
             outputSurfaces.add(new Surface(textureView.getSurfaceTexture()));
             final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(reader.getSurface());
-
-            //disabling automatics adjustments of camera (maybe call AE_MODE_OFF/AE_MODE_LOCKED
-            //captureBuilder.set(CaptureRequest.CONTROL_AE_LOCK,true);
-            //captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_OFF);
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
@@ -293,6 +296,7 @@ public class CameraActivity extends Activity {
                     double[] intensity = RGBDecoder.getImageIntensity(rgb);
                     graphData = RGBDecoder.computeIntensityMean(intensity,width,height);
                     updateUIGraph();
+                    image.close();
                 }
             };
             reader.setOnImageAvailableListener(readerListener, this.backgroundHandler);
@@ -308,21 +312,13 @@ public class CameraActivity extends Activity {
             cameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(CameraCaptureSession session) {
-                    try {
-                        captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,CameraMetadata.CONTROL_AF_MODE_OFF);
-                        captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
-                        captureBuilder.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF);
-                        captureBuilder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF);
-                        captureBuilder.set(CaptureRequest.LENS_FOCUS_DISTANCE, .2f);
-                        session.capture(captureBuilder.build(), captureListener,backgroundHandler);
-                    } catch (CameraAccessException e) {
-                        e.printStackTrace();
-                    }
+                    disableAutomatics(captureBuilder,session,captureListener);
                 }
                 @Override
                 public void onConfigureFailed(CameraCaptureSession session) {
                 }
             }, this.backgroundHandler);
+
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -352,12 +348,28 @@ public class CameraActivity extends Activity {
                 for(int i = 0; i < graphData.length; i++){
                     values[i] = new DataPoint(i,graphData[i]);
                 }
+
                 LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);
                 graphView.addSeries(series);
                 graphView.setVisibility(View.VISIBLE);
                 findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
             }
         });
+    }
+
+    private void disableAutomatics(CaptureRequest.Builder captureBuilder, CameraCaptureSession session, CameraCaptureSession.CaptureCallback callback) {
+        try {
+            captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
+            captureBuilder.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF);
+            captureBuilder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF);
+            captureBuilder.set(CaptureRequest.CONTROL_AE_MODE,CaptureRequest.CONTROL_AE_MODE_OFF);
+            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,CaptureRequest.CONTROL_AF_MODE_OFF);
+
+            CaptureRequest captureRequest = captureBuilder.build();
+            session.setRepeatingRequest(captureRequest, callback, this.backgroundHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     private void displayProcessingCircle(){

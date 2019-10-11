@@ -21,46 +21,46 @@
 
     <Button
         android:id="@+id/btn_takepicture"
-        android:layout_width="149dp"
-        android:layout_height="49dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="35dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="200dp"
+        android:layout_marginStart="172dp"
+        android:layout_marginTop="185dp"
+        android:layout_marginEnd="172dp"
+        android:layout_marginBottom="172dp"
         android:background="@color/buttonBackground"
         android:text="@string/take_picture"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/save_picture_button"
-        app:layout_constraintStart_toEndOf="@+id/save_reference_button"
-        app:layout_constraintTop_toBottomOf="@+id/texture"
-        app:layout_constraintVertical_bias="0.3" />
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/intensityGraph"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/save_picture_button" />
 
     <Button
         android:id="@+id/save_reference_button"
-        android:layout_width="149dp"
-        android:layout_height="49dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginBottom="350dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:background="@color/buttonBackground"
         android:text="@string/save_reference_button"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/texture" />
 
     <Button
         android:id="@+id/save_picture_button"
-        android:layout_width="149dp"
+        android:layout_width="116dp"
         android:layout_height="49dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="350dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
         android:background="@color/buttonBackground"
         android:text="@string/save_picture_button"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@+id/clearButton"
+        app:layout_constraintStart_toEndOf="@+id/save_reference_button"
         app:layout_constraintTop_toBottomOf="@+id/texture" />
 
     <com.jjoe64.graphview.GraphView
@@ -92,5 +92,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/clearButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@color/buttonBackground"
+        android:text="@string/clear_button_text"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/texture" />
 
 </android.support.constraint.ConstraintLayout>

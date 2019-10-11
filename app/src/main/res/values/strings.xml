@@ -5,4 +5,5 @@
     <string name="quit">Quit Application</string>
     <string name="save_reference_button">Save as reference</string>
     <string name="save_picture_button">save as picture</string>
+    <string name="clear_button_text">Clear graph</string>
 </resources>

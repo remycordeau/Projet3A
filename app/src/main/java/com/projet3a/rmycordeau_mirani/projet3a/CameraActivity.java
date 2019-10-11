@@ -52,8 +52,8 @@ public class CameraActivity extends Activity {
     private Button takePictureButton;
     private Button saveReferenceButton;
     private Button saveDataButton;
+    private Button clearGraphButton;
     private Boolean isReferenceSaved = false;
-    private Boolean isPictureSaved = false;
     private TextureView textureView;
     private String cameraId;
     protected CameraDevice cameraDevice;
@@ -122,13 +122,21 @@ public class CameraActivity extends Activity {
                 try {
                     if (isReferenceSaved){
                         savePicture("Data");
-                        isPictureSaved = true;
                     }else{
                         Toast.makeText(CameraActivity.this,"You must first save the reference",Toast.LENGTH_SHORT).show();
                     }
                 }catch (IOException e){
                     Log.e(TAG,e.toString());
                 }
+            }
+        });
+
+        this.clearGraphButton = findViewById(R.id.clearButton);
+        assert this.clearGraphButton != null;
+        this.clearGraphButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                clearGraph();
             }
         });
     }
@@ -378,45 +386,56 @@ public class CameraActivity extends Activity {
 
     private void updateUIGraph() {
 
+        final GraphView graphView = findViewById(R.id.intensityGraph);
+
+        //setting up X and Y axis title
+        GridLabelRenderer gridLabelRenderer = graphView.getGridLabelRenderer();
+        gridLabelRenderer.setHorizontalAxisTitle("Pixel position");
+        gridLabelRenderer.setVerticalAxisTitle("Pixel intensity");
+
+        // checking if the graphic contains series
+        if(!graphView.getSeries().isEmpty() && !isReferenceSaved){
+            graphView.removeAllSeries();
+        }
+
+        //adding series to graph
+        DataPoint[] values = new DataPoint[graphData.length];
+        for(int i = 0; i < graphData.length; i++){
+            values[i] = new DataPoint(i,graphData[i]);
+        }
+
+        //if the reference is saved and not the data, we remove previous data
+        if(isReferenceSaved){
+            if(graphView.getSeries().size() > 1){
+                graphView.getSeries().remove(1);
+            }
+        }
+
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);
+        if(isReferenceSaved){
+            series.setColor(Color.RED);
+        }
+        graphView.addSeries(series);
+
         assert this.graphData != null;
         runOnUiThread(new Runnable() {
-
             @Override
             public void run() {
-                GraphView graphView = findViewById(R.id.intensityGraph);
-
-                //setting up X and Y axis title
-                GridLabelRenderer gridLabelRenderer = graphView.getGridLabelRenderer();
-                gridLabelRenderer.setHorizontalAxisTitle("Pixel position");
-                gridLabelRenderer.setVerticalAxisTitle("Pixel intensity");
-
-                // checking if the graphic contains series
-                if(!graphView.getSeries().isEmpty() && !isReferenceSaved){
-                    graphView.removeAllSeries();
-                }
-
-                //adding series to graph
-                DataPoint[] values = new DataPoint[graphData.length];
-                for(int i = 0; i < graphData.length; i++){
-                    values[i] = new DataPoint(i,graphData[i]);
-                }
-
-                //if the reference is saved and not the data, we remove previous data
-                if(isReferenceSaved && !isPictureSaved){
-                    if(graphView.getSeries().size() > 1){
-                        graphView.getSeries().remove(1);
-                    }
-                }
-
-                LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);
-                if(isReferenceSaved){
-                    series.setColor(Color.RED);
-                }
-                graphView.addSeries(series);
                 graphView.setVisibility(View.VISIBLE);
                 findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
             }
         });
+    }
+
+    public void clearGraph(){
+        if(this.graphData == null){
+            return;
+        }else{
+            GraphView graphView = findViewById(R.id.intensityGraph);
+            if(graphView.getSeries().size() > 0)
+                graphView.removeAllSeries();
+            this.isReferenceSaved = false;
+        }
     }
 
     private void disableAutomatics(CaptureRequest.Builder captureBuilder, CameraCaptureSession session, CameraCaptureSession.CaptureCallback callback) {

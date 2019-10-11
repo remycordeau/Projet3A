@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.*;
@@ -28,7 +29,6 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -53,6 +53,7 @@ public class CameraActivity extends Activity {
     private Button saveReferenceButton;
     private Button saveDataButton;
     private Boolean isReferenceSaved = false;
+    private Boolean isPictureSaved = false;
     private TextureView textureView;
     private String cameraId;
     protected CameraDevice cameraDevice;
@@ -101,12 +102,30 @@ public class CameraActivity extends Activity {
         });
 
         this.saveReferenceButton = findViewById(R.id.save_reference_button);
-        assert this.saveReferenceButton !=null;
+        assert this.saveReferenceButton != null;
         this.saveReferenceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
-                    savePicture();
+                    savePicture("Reference");
+                }catch (IOException e){
+                    Log.e(TAG,e.toString());
+                }
+            }
+        });
+
+        this.saveDataButton = findViewById(R.id.save_picture_button);
+        assert this.saveDataButton != null;
+        this.saveDataButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    if (isReferenceSaved){
+                        savePicture("Data");
+                        isPictureSaved = true;
+                    }else{
+                        Toast.makeText(CameraActivity.this,"You must first save the reference",Toast.LENGTH_SHORT).show();
+                    }
                 }catch (IOException e){
                     Log.e(TAG,e.toString());
                 }
@@ -237,7 +256,7 @@ public class CameraActivity extends Activity {
             if(version > 22){
                 requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
                 if(this.contextWrapper.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
-                    requestPermissions(new String[]{Manifest.permission.CAMERA},200);
+                    requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
                 }
             }
             cameraManager.openCamera(cameraId,stateCallback,null);
@@ -262,7 +281,7 @@ public class CameraActivity extends Activity {
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
                 // close the app
-                Toast.makeText(CameraActivity.this, "Sorry!!!, you can't use this app without granting permission", Toast.LENGTH_LONG).show();
+                Toast.makeText(CameraActivity.this, "Sorry, you can't use this app without granting permission", Toast.LENGTH_LONG).show();
                 finish();
             }
         }
@@ -372,7 +391,7 @@ public class CameraActivity extends Activity {
                 gridLabelRenderer.setVerticalAxisTitle("Pixel intensity");
 
                 // checking if the graphic contains series
-                if(!graphView.getSeries().isEmpty()){
+                if(!graphView.getSeries().isEmpty() && !isReferenceSaved){
                     graphView.removeAllSeries();
                 }
 
@@ -382,7 +401,17 @@ public class CameraActivity extends Activity {
                     values[i] = new DataPoint(i,graphData[i]);
                 }
 
+                //if the reference is saved and not the data, we remove previous data
+                if(isReferenceSaved && !isPictureSaved){
+                    if(graphView.getSeries().size() > 1){
+                        graphView.getSeries().remove(1);
+                    }
+                }
+
                 LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);
+                if(isReferenceSaved){
+                    series.setColor(Color.RED);
+                }
                 graphView.addSeries(series);
                 graphView.setVisibility(View.VISIBLE);
                 findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
@@ -416,14 +445,14 @@ public class CameraActivity extends Activity {
      });
     }
 
-    private void savePicture() throws IOException{
+    private void savePicture(String text) throws IOException{
         if(this.graphData == null){
             Toast.makeText(CameraActivity.this,"Please press Take Picture button before saving",Toast.LENGTH_SHORT).show();
         }else{
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH:mm:ss", Locale.getDefault());
-            String currentDateandTime = sdf.format(new Date());
+            String currentDateAndTime = sdf.format(new Date());
             OutputStream outputStream = null;
-            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),"savedPicture_"+currentDateandTime+".txt");
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),text+"_"+currentDateAndTime+".txt");
             try{
                 outputStream = new FileOutputStream(file,false);
                 for(int i = 0; i < this.graphData.length; i++){
@@ -433,6 +462,7 @@ public class CameraActivity extends Activity {
             }finally {
                 if(outputStream != null){
                     outputStream.close();
+                    this.isReferenceSaved = true;
                     Toast.makeText(CameraActivity.this, "File successfully saved",Toast.LENGTH_SHORT).show();
                 }
             }

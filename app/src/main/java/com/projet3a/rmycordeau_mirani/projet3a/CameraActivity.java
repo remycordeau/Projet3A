@@ -78,13 +78,34 @@ public class CameraActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera_layout);
         this.contextWrapper = new ContextWrapper(getApplicationContext());
         enableListeners();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.e(TAG, "onResume");
+        startBackgroundThread();
+        if (textureView.isAvailable()) {
+            openCamera();
+        } else {
+            textureView.setSurfaceTextureListener(textureListener);
+        }
+    }
+    @Override
+    protected void onPause() {
+        Log.e(TAG, "onPause");
+        closeCamera();
+        stopBackgroundThread();
+        super.onPause();
+    }
+
+    /**
+     * Adds listeners on various UI components
+     */
     private void enableListeners() {
 
         this.textureView = findViewById(R.id.texture);
@@ -163,6 +184,7 @@ public class CameraActivity extends Activity {
         }
     };
 
+    // "listener" of the camera device, calls various method depending on the CameraDevice state
     private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
         @Override
         public void onOpened(CameraDevice camera) {
@@ -184,12 +206,18 @@ public class CameraActivity extends Activity {
         }
     };
 
+    /**
+     * Starts background thread for camera
+    */
     protected void startBackgroundThread(){
         this.backgroundThread = new HandlerThread("Camera background");
         this.backgroundThread.start();
         this.backgroundHandler = new android.os.Handler(this.backgroundThread.getLooper());
     }
 
+    /**
+     * Stops background thread
+     */
     protected void stopBackgroundThread(){
         this.backgroundThread.quitSafely();
         try{
@@ -200,50 +228,9 @@ public class CameraActivity extends Activity {
         }
     }
 
-    protected void createCameraPreview(){
-        try{
-            SurfaceTexture texture = this.textureView.getSurfaceTexture();
-            assert texture != null;
-            texture.setDefaultBufferSize(this.imageDimension.getWidth(),this.imageDimension.getHeight());
-            Surface surface = new Surface(texture);
-            this.captureRequestBuilder = this.cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            this.captureRequestBuilder.addTarget(surface);
-            final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
-                @Override
-                public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
-                    super.onCaptureCompleted(session, request, result);
-                }
-            };
-            this.cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
-                @Override
-                public void onConfigured(CameraCaptureSession captureSession) {
-                    if(cameraDevice == null) return;
-                    cameraCaptureSession = captureSession;
-                    disableAutomatics(captureRequestBuilder,captureSession,captureListener);
-                    updatePreview();
-                }
-                @Override
-                public void onConfigureFailed(CameraCaptureSession captureSession) {
-                    Toast.makeText(CameraActivity.this, "Configuration change", Toast.LENGTH_SHORT).show();
-                }
-            },null);
-        }catch(CameraAccessException e){
-            e.printStackTrace();
-        }
-    }
-
-    protected void updatePreview(){
-        if(this.cameraDevice == null){
-            Log.e(TAG, "updatePreview error, return");
-        }
-        this.captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-        try {
-            this.cameraCaptureSession.setRepeatingRequest(captureRequestBuilder.build(), null, this.backgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
+    /**
+     * opens the camera (if allowed), activates flash light and set image dimension for capture
+     */
     private void openCamera(){
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try{
@@ -273,50 +260,72 @@ public class CameraActivity extends Activity {
         }
     }
 
-    private void closeCamera() {
-        if (cameraDevice != null) {
-            cameraDevice.close();
-            cameraDevice = null;
-        }
-        if (imageReader != null) {
-            imageReader.close();
-            imageReader = null;
-        }
-    }
-
+    /**
+     * Called when a access to the camera is requested. If the permission is denied, this function ends the current activity
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                // close the app
                 Toast.makeText(CameraActivity.this, "Sorry, you can't use this app without granting permission", Toast.LENGTH_LONG).show();
                 finish();
             }
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.e(TAG, "onResume");
-        startBackgroundThread();
-        if (textureView.isAvailable()) {
-            openCamera();
-        } else {
-            textureView.setSurfaceTextureListener(textureListener);
+    /**
+     * Closes camera and image reader
+     */
+    private void closeCamera() {
+        if (cameraDevice != null) {
+            cameraDevice.close();
+            cameraDevice = null;
+        }
+        if (this.imageReader != null) {
+            this.imageReader.close();
+            this.imageReader = null;
         }
     }
-    @Override
-    protected void onPause() {
-        Log.e(TAG, "onPause");
-        closeCamera();
-        stopBackgroundThread();
-        super.onPause();
+
+    /**
+     * Creates a camera preview, a CaptureSession and sets various parameters for this CaptureSession (calls disableAutmatics method)
+     */
+    protected void createCameraPreview(){
+        try{
+            SurfaceTexture texture = this.textureView.getSurfaceTexture();
+            assert texture != null;
+            texture.setDefaultBufferSize(this.imageDimension.getWidth(),this.imageDimension.getHeight());
+            Surface surface = new Surface(texture);
+            this.captureRequestBuilder = this.cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            this.captureRequestBuilder.addTarget(surface);
+            final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
+                @Override
+                public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+                    super.onCaptureCompleted(session, request, result);
+                }
+            };
+            this.cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
+                @Override
+                public void onConfigured(CameraCaptureSession captureSession) {
+                    if(cameraDevice == null) return;
+                    cameraCaptureSession = captureSession;
+                    captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+                    disableAutomatics(captureRequestBuilder,cameraCaptureSession,captureListener);
+                }
+                @Override
+                public void onConfigureFailed(CameraCaptureSession captureSession) {
+                    Toast.makeText(CameraActivity.this, "Configuration change", Toast.LENGTH_SHORT).show();
+                }
+            },null);
+        }catch(CameraAccessException e){
+            e.printStackTrace();
+        }
     }
 
     protected void setImagesCapture() {
         if(null == cameraDevice) {
             Log.e(TAG, "cameraDevice is null");
+            openCamera();
             return;
         }
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
@@ -334,32 +343,30 @@ public class CameraActivity extends Activity {
                 height = jpegSizes[0].getHeight();
             }
 
-            ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
+            this.imageReader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
             List<Surface> outputSurfaces = new ArrayList<Surface>(2);
-            outputSurfaces.add(reader.getSurface());
+            outputSurfaces.add(this.imageReader.getSurface());
             outputSurfaces.add(new Surface(textureView.getSurfaceTexture()));
             final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
-            captureBuilder.addTarget(reader.getSurface());
+            captureBuilder.addTarget(this.imageReader.getSurface());
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
-                    Image image = reader.acquireLatestImage();
+                    Image image = reader.acquireNextImage();
                     int width = image.getWidth();
                     int height = image.getHeight();
                     ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                     byte[] bytes = new byte[buffer.capacity()];
                     buffer.get(bytes);
-                    int[] rgb =  RGBDecoder.getRGBCode(bytes,width,height);
-                    double[] intensity = RGBDecoder.getImageIntensity(rgb);
-                    graphData = RGBDecoder.computeIntensityMean(intensity,width,height);
-                    updateUIGraph();
+                    updateUIGraph(bytes,width,height);
                     image.close();
                 }
             };
-            reader.setOnImageAvailableListener(readerListener, this.backgroundHandler);
+            this.imageReader.setOnImageAvailableListener(readerListener, backgroundHandler);
+
 
             final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
                 @Override
@@ -384,49 +391,71 @@ public class CameraActivity extends Activity {
         }
     }
 
-    private void updateUIGraph() {
+    /**
+     * Updates the UI graph when a new picture is taken
+     * @param bytes
+     * @param width
+     * @param height
+     * */
+    private void updateUIGraph(final byte[] bytes, final int width, final int height) {
 
         final GraphView graphView = findViewById(R.id.intensityGraph);
 
-        //setting up X and Y axis title
-        GridLabelRenderer gridLabelRenderer = graphView.getGridLabelRenderer();
-        gridLabelRenderer.setHorizontalAxisTitle("Pixel position");
-        gridLabelRenderer.setVerticalAxisTitle("Pixel intensity");
-
-        // checking if the graphic contains series
-        if(!graphView.getSeries().isEmpty() && !isReferenceSaved){
-            graphView.removeAllSeries();
-        }
-
-        //adding series to graph
-        DataPoint[] values = new DataPoint[graphData.length];
-        for(int i = 0; i < graphData.length; i++){
-            values[i] = new DataPoint(i,graphData[i]);
-        }
-
-        //if the reference is saved and not the data, we remove previous data
-        if(isReferenceSaved){
-            if(graphView.getSeries().size() > 1){
-                graphView.getSeries().remove(1);
-            }
-        }
-
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);
-        if(isReferenceSaved){
-            series.setColor(Color.RED);
-        }
-        graphView.addSeries(series);
-
-        assert this.graphData != null;
-        runOnUiThread(new Runnable() {
+        Thread updateGraphThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                graphView.setVisibility(View.VISIBLE);
-                findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+
+                int[] rgb =  RGBDecoder.getRGBCode(bytes,width,height);
+                double[] intensity = RGBDecoder.getImageIntensity(rgb);
+                graphData = RGBDecoder.computeIntensityMean(intensity,width,height);
+
+                //setting up X and Y axis title
+                GridLabelRenderer gridLabelRenderer = graphView.getGridLabelRenderer();
+                gridLabelRenderer.setHorizontalAxisTitle("Pixel position");
+                gridLabelRenderer.setVerticalAxisTitle("Pixel intensity");
+
+                // checking if the graphic contains series
+                if(!graphView.getSeries().isEmpty() && !isReferenceSaved){
+                    graphView.removeAllSeries();
+                }
+
+                //adding series to graph
+                DataPoint[] values = new DataPoint[graphData.length];
+                for(int i = 0; i < graphData.length; i++){
+                    values[i] = new DataPoint(i,graphData[i]);
+                }
+
+                //if the reference is saved and not the data, we remove previous data
+                if(isReferenceSaved){
+                    if(graphView.getSeries().size() > 1){
+                        graphView.getSeries().remove(1);
+                    }
+                }
+
+                LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);
+                if(isReferenceSaved){
+                    series.setColor(Color.RED);
+                }
+                graphView.addSeries(series);
+
+                assert graphData != null;
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        graphView.setVisibility(View.VISIBLE);
+                        findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+                        return;
+                    }
+                });
             }
         });
+        updateGraphThread.start();
     }
 
+    /**
+     * Clears graph and updates UI accordingly
+     */
     public void clearGraph(){
         if(this.graphData == null){
             return;
@@ -438,6 +467,9 @@ public class CameraActivity extends Activity {
         }
     }
 
+    /**
+     * disables some camera automatics (such as auto focus, lens stabilization) for the specified CameraCaptureSession
+     */
     private void disableAutomatics(CaptureRequest.Builder captureBuilder, CameraCaptureSession session, CameraCaptureSession.CaptureCallback callback) {
         try {
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
@@ -453,6 +485,9 @@ public class CameraActivity extends Activity {
         }
     }
 
+    /**
+     * Displays a progress bar in the UI
+     */
     private void displayProcessingCircle(){
      runOnUiThread(new Runnable() {
          @Override
@@ -464,6 +499,9 @@ public class CameraActivity extends Activity {
      });
     }
 
+    /**
+     * Saves picture data in a file (stored in Documents folder)
+     */
     private void savePicture(String text) throws IOException{
         if(this.graphData == null){
             Toast.makeText(CameraActivity.this,"Please press Take Picture button before saving",Toast.LENGTH_SHORT).show();

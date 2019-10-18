@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
@@ -38,6 +39,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -49,11 +51,14 @@ import java.util.Locale;
 public class CameraActivity extends Activity {
 
     private static final String TAG = "Camera Activity";
+    public static final String GRAPH_DATA_KEY = "Graph Data";
     private Button takePictureButton;
     private Button saveReferenceButton;
     private Button saveDataButton;
     private Button clearGraphButton;
+    private Button validateButton;
     private Boolean isReferenceSaved = false;
+    private Boolean isSampleSaved = false;
     private TextureView textureView;
     private String cameraId;
     protected CameraDevice cameraDevice;
@@ -67,6 +72,7 @@ public class CameraActivity extends Activity {
     private android.os.Handler backgroundHandler;
     private ContextWrapper contextWrapper;
     private double[] graphData = null;
+    private HashMap<String,double[]> definitiveMeasures = new HashMap<>();
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static {
@@ -142,7 +148,7 @@ public class CameraActivity extends Activity {
             public void onClick(View view) {
                 try {
                     if (isReferenceSaved){
-                        savePicture("Data");
+                        savePicture("Sample");
                     }else{
                         Toast.makeText(CameraActivity.this,"You must first save the reference",Toast.LENGTH_SHORT).show();
                     }
@@ -158,6 +164,22 @@ public class CameraActivity extends Activity {
             @Override
             public void onClick(View view) {
                 clearGraph();
+            }
+        });
+
+        this.validateButton = findViewById(R.id.validateButton);
+        assert this.validateButton != null;
+        this.validateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(graphData != null && isReferenceSaved && isSampleSaved){
+                    Intent intent = new Intent(CameraActivity.this, AnalysisActivity.class);
+                    assert definitiveMeasures.containsKey("Reference") && definitiveMeasures.containsKey("Sample");
+                    intent.putExtra(GRAPH_DATA_KEY,definitiveMeasures);
+                    startActivity(intent);
+                }else{
+                    Toast.makeText(CameraActivity.this,"You must complete both captures before validating",Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -359,9 +381,13 @@ public class CameraActivity extends Activity {
                     int width = image.getWidth();
                     int height = image.getHeight();
                     ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                    byte[] bytes = new byte[buffer.capacity()];
+                    byte[] bytes = new byte[buffer.remaining()];
                     buffer.get(bytes);
-                    updateUIGraph(bytes,width,height);
+                    int[] rgb =  RGBDecoder.getRGBCode(bytes,width,height);
+                    double[] intensity = RGBDecoder.getImageIntensity(rgb);
+                    graphData = RGBDecoder.computeIntensityMean(intensity,width,height);
+                    saveCurrentMeasure();
+                    updateUIGraph();
                     image.close();
                 }
             };
@@ -393,21 +419,14 @@ public class CameraActivity extends Activity {
 
     /**
      * Updates the UI graph when a new picture is taken
-     * @param bytes
-     * @param width
-     * @param height
      * */
-    private void updateUIGraph(final byte[] bytes, final int width, final int height) {
+    private void updateUIGraph() {
 
         final GraphView graphView = findViewById(R.id.intensityGraph);
 
         Thread updateGraphThread = new Thread(new Runnable() {
             @Override
             public void run() {
-
-                int[] rgb =  RGBDecoder.getRGBCode(bytes,width,height);
-                double[] intensity = RGBDecoder.getImageIntensity(rgb);
-                graphData = RGBDecoder.computeIntensityMean(intensity,width,height);
 
                 //setting up X and Y axis title
                 GridLabelRenderer gridLabelRenderer = graphView.getGridLabelRenderer();
@@ -439,13 +458,15 @@ public class CameraActivity extends Activity {
                 graphView.addSeries(series);
 
                 assert graphData != null;
-
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        graphView.setVisibility(View.VISIBLE);
-                        findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-                        return;
+                        if(graphView.getVisibility() != View.VISIBLE){
+                            graphView.setVisibility(View.VISIBLE);
+                        }else{
+                            findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+                            return;
+                        }
                     }
                 });
             }
@@ -464,6 +485,18 @@ public class CameraActivity extends Activity {
             if(graphView.getSeries().size() > 0)
                 graphView.removeAllSeries();
             this.isReferenceSaved = false;
+            this.isSampleSaved = false;
+        }
+    }
+
+    /**
+     * saves the frame's data in a map
+     */
+    private void saveCurrentMeasure(){
+        if(!this.isReferenceSaved && !this.isSampleSaved){ // we are trying to capture the reference
+            this.definitiveMeasures.put("Reference",this.graphData);
+        }else if(this.isReferenceSaved && !this.isSampleSaved){
+            this.definitiveMeasures.put("Sample",this.graphData);
         }
     }
 
@@ -519,7 +552,11 @@ public class CameraActivity extends Activity {
             }finally {
                 if(outputStream != null){
                     outputStream.close();
-                    this.isReferenceSaved = true;
+                    if(text.equals("Reference")){
+                        this.isReferenceSaved = true;
+                    }else if(text.equals("Sample")){
+                        this.isSampleSaved = true;
+                    }
                     Toast.makeText(CameraActivity.this, "File successfully saved",Toast.LENGTH_SHORT).show();
                 }
             }

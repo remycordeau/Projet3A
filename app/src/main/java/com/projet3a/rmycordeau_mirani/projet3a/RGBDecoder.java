@@ -3,7 +3,6 @@ package com.projet3a.rmycordeau_mirani.projet3a;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.util.Log;
 
 /**
  * Created by Rémy Cordeau-Mirani on 20/09/2019.
@@ -25,7 +24,6 @@ public class RGBDecoder {
                 B = rgb[index] & 0xff;
                 rgb[index] = 0xff000000 | (R << 16) | (G << 8) | B;
             }
-
         }
         return rgb;
     }

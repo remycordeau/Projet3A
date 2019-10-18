@@ -28,6 +28,9 @@
             android:name=".CameraActivity"
             android:screenOrientation="portrait">
         </activity>
+        <activity
+            android:name=".AnalysisActivity">
+        </activity>
     </application>
 
 </manifest>

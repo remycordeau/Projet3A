@@ -47,14 +47,11 @@ public class RGBDecoder {
             index = i;
             while(index < intensity.length){ //if the index is defined, we add it to the mean
                 meanValue += intensity[index];
-                index += height; //go to next line value for the considered column
+                index += width; //go to next line value for the considered column
             }//if it is not, it means that we have to change column in our captured picture
             intensityMean[i] = meanValue/height;
             meanValue = 0;
         }
-
         return intensityMean;
     }
 }
-
-

@@ -6,12 +6,12 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.*;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,7 +19,6 @@ import android.os.Environment;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
-import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -34,13 +33,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 
 
@@ -63,7 +59,6 @@ public class CameraActivity extends Activity {
     private String cameraId;
     protected CameraDevice cameraDevice;
     protected CameraCaptureSession cameraCaptureSession;
-    protected CaptureRequest captureRequest;
     protected CaptureRequest.Builder captureRequestBuilder;
     private Size imageDimension;
     private ImageReader imageReader;
@@ -73,14 +68,6 @@ public class CameraActivity extends Activity {
     private ContextWrapper contextWrapper;
     private double[] graphData = null;
     private HashMap<String,double[]> definitiveMeasures = new HashMap<>();
-    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
-
-    static {
-        ORIENTATIONS.append(Surface.ROTATION_0, 90);
-        ORIENTATIONS.append(Surface.ROTATION_90, 0);
-        ORIENTATIONS.append(Surface.ROTATION_180, 270);
-        ORIENTATIONS.append(Surface.ROTATION_270, 180);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,7 +134,8 @@ public class CameraActivity extends Activity {
             @Override
             public void onClick(View view) {
                 try {
-                    if (isReferenceSaved){
+                    GraphView graphView = findViewById(R.id.intensityGraph);
+                    if (isReferenceSaved && graphView.getSeries().size() >= 2){
                         savePicture("Sample");
                     }else{
                         Toast.makeText(CameraActivity.this,"You must first save the reference",Toast.LENGTH_SHORT).show();
@@ -251,7 +239,7 @@ public class CameraActivity extends Activity {
     }
 
     /**
-     * opens the camera (if allowed), activates flash light and set image dimension for capture
+     * opens the camera (if allowed), activates flash light and sets image dimension for capture
      */
     private void openCamera(){
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
@@ -352,7 +340,6 @@ public class CameraActivity extends Activity {
         }
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
-
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(this.cameraDevice.getId());
             Size[] jpegSizes = null;
             if (characteristics != null) {
@@ -364,53 +351,12 @@ public class CameraActivity extends Activity {
                 width = jpegSizes[0].getWidth();
                 height = jpegSizes[0].getHeight();
             }
-
-            this.imageReader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
-            List<Surface> outputSurfaces = new ArrayList<Surface>(2);
-            outputSurfaces.add(this.imageReader.getSurface());
-            outputSurfaces.add(new Surface(textureView.getSurfaceTexture()));
-            final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
-            captureBuilder.addTarget(this.imageReader.getSurface());
-            int rotation = getWindowManager().getDefaultDisplay().getRotation();
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
-
-            ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
-                @Override
-                public void onImageAvailable(ImageReader reader) {
-                    Image image = reader.acquireNextImage();
-                    int width = image.getWidth();
-                    int height = image.getHeight();
-                    ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                    byte[] bytes = new byte[buffer.remaining()];
-                    buffer.get(bytes);
-                    int[] rgb =  RGBDecoder.getRGBCode(bytes,width,height);
-                    double[] intensity = RGBDecoder.getImageIntensity(rgb);
-                    graphData = RGBDecoder.computeIntensityMean(intensity,width,height);
-                    saveCurrentMeasure();
-                    updateUIGraph();
-                    image.close();
-                }
-            };
-            this.imageReader.setOnImageAvailableListener(readerListener, backgroundHandler);
-
-
-            final CameraCaptureSession.CaptureCallback captureListener = new CameraCaptureSession.CaptureCallback() {
-                @Override
-                public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
-                    super.onCaptureCompleted(session, request, result);
-                    createCameraPreview();
-                }
-            };
-
-            cameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
-                @Override
-                public void onConfigured(CameraCaptureSession session) {
-                    disableAutomatics(captureBuilder,session,captureListener);
-                }
-                @Override
-                public void onConfigureFailed(CameraCaptureSession session) {
-                }
-            }, this.backgroundHandler);
+            Bitmap bitmap = textureView.getBitmap(width,height);
+            int[] rgb =  RGBDecoder.getRGBCode(bitmap,width,height);
+            double[] intensity = RGBDecoder.getImageIntensity(rgb);
+            graphData = RGBDecoder.computeIntensityMean(intensity,width,height);
+            saveCurrentMeasure();
+            updateUIGraph();
 
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -463,6 +409,7 @@ public class CameraActivity extends Activity {
                     public void run() {
                         if(graphView.getVisibility() != View.VISIBLE){
                             graphView.setVisibility(View.VISIBLE);
+                            findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
                         }else{
                             findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
                             return;

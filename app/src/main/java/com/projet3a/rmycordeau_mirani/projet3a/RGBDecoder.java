@@ -1,7 +1,6 @@
 package com.projet3a.rmycordeau_mirani.projet3a;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 
 /**
@@ -10,9 +9,7 @@ import android.graphics.Color;
 
 public class RGBDecoder {
 
-    public static int[] getRGBCode(byte[] bytes, int width, int height) {
-
-        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0, bytes.length);
+    public static int[] getRGBCode(Bitmap bitmap, int width, int height) {
         int[] rgb = new int[width * height];
         bitmap.getPixels(rgb, 0, width, 0, 0, width, height);
         int R, G, B;
@@ -22,7 +19,7 @@ public class RGBDecoder {
                 R = (rgb[index] >> 16) & 0xff;
                 G = (rgb[index] >> 8) & 0xff;
                 B = rgb[index] & 0xff;
-                rgb[index] = 0xff000000 | (R << 16) | (G << 8) | B;
+                rgb[index] = 0xff000000 | (R << 16) | (G << 8) | B; //color encoding
             }
         }
         return rgb;

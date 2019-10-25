@@ -5,7 +5,9 @@
       <module fileurl="file://$PROJECT_DIR$/Projet3A.iml" filepath="$PROJECT_DIR$/Projet3A.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/Projet3A-app.iml" filepath="$PROJECT_DIR$/app/Projet3A-app.iml" />
       <module fileurl="file://$PROJECT_DIR$/StudioProjects-Projet3A.iml" filepath="$PROJECT_DIR$/StudioProjects-Projet3A.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/StudioProjects-Projet3A-app.iml" filepath="$PROJECT_DIR$/app/StudioProjects-Projet3A-app.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/remy-StudioProjects-Projet3A.iml" filepath="$PROJECT_DIR$/remy-StudioProjects-Projet3A.iml" />
     </modules>
   </component>
 </project>

@@ -11,7 +11,6 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.HashMap;
 
-import static com.projet3a.rmycordeau_mirani.projet3a.CameraActivity.GRAPH_DATA_KEY;
 
 public class AnalysisActivity extends Activity {
 
@@ -24,11 +23,15 @@ public class AnalysisActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.analysis_activity_layout);
         this.cameraActivityData = getIntent().getExtras();
-        this.graphData = (HashMap<String,double[]>) this.cameraActivityData.get(GRAPH_DATA_KEY);
-        if(this.graphData.containsKey("Reference") && this.graphData.containsKey("Sample")){
-            drawGraph();
-        }else{
-            Toast.makeText(this,"Missing data to draw graph",Toast.LENGTH_SHORT).show();
+        this.graphData = (HashMap<String,double[]>) this.cameraActivityData.get(CameraActivity.GRAPH_DATA_KEY);
+        try{
+            if(this.graphData.containsKey("Reference") && this.graphData.containsKey("Sample")){
+                drawGraph();
+            }else{
+                Toast.makeText(this,"Missing data to draw graph",Toast.LENGTH_SHORT).show();
+            }
+        }catch (NullPointerException e){
+            e.printStackTrace();
         }
     }
 
@@ -49,8 +52,8 @@ public class AnalysisActivity extends Activity {
 
         //setting up X and Y axis title
         GridLabelRenderer gridLabelRenderer = graphView.getGridLabelRenderer();
-        //gridLabelRenderer.setHorizontalAxisTitle("Pixel position");
-        //gridLabelRenderer.setVerticalAxisTitle("Pixel");
+        gridLabelRenderer.setHorizontalAxisTitle("Pixel position");
+        gridLabelRenderer.setVerticalAxisTitle("Absorption");
         graphView.addSeries(series);
     }
 }

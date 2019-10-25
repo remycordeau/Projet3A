@@ -48,6 +48,7 @@ public class CameraActivity extends Activity {
 
     private static final String TAG = "Camera Activity";
     public static final String GRAPH_DATA_KEY = "Graph Data";
+    private static final int REQUEST_CAMERA_PERMISSION = 200;
     private Button takePictureButton;
     private Button saveReferenceButton;
     private Button saveDataButton;
@@ -61,8 +62,6 @@ public class CameraActivity extends Activity {
     protected CameraCaptureSession cameraCaptureSession;
     protected CaptureRequest.Builder captureRequestBuilder;
     private Size imageDimension;
-    private ImageReader imageReader;
-    private static final int REQUEST_CAMERA_PERMISSION = 200;
     private HandlerThread backgroundThread;
     private android.os.Handler backgroundHandler;
     private ContextWrapper contextWrapper;
@@ -242,9 +241,16 @@ public class CameraActivity extends Activity {
      * opens the camera (if allowed), activates flash light and sets image dimension for capture
      */
     private void openCamera(){
+        int version = Build.VERSION.SDK_INT;
+        if(version > 22){
+            requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
+            if(this.contextWrapper.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+                requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
+            }
+        }
+        //TODO put this code into CameraHandler (except call to openCamera)
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try{
-            int version = Build.VERSION.SDK_INT;
             if(version <= 22){
                 Log.e(TAG,"Cannot activate flash light, API level too low");
                 Toast flashError = Toast.makeText(CameraActivity.this,"Cannot activate flash light, API level too low",Toast.LENGTH_LONG);
@@ -258,12 +264,6 @@ public class CameraActivity extends Activity {
             StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;
             this.imageDimension =  map.getOutputSizes(SurfaceTexture.class)[0];
-            if(version > 22){
-                requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
-                if(this.contextWrapper.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
-                    requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
-                }
-            }
             cameraManager.openCamera(cameraId,stateCallback,null);
         }catch(CameraAccessException e){
             e.printStackTrace();
@@ -286,20 +286,18 @@ public class CameraActivity extends Activity {
     /**
      * Closes camera and image reader
      */
+    //TODO to remove
     private void closeCamera() {
         if (cameraDevice != null) {
             cameraDevice.close();
             cameraDevice = null;
-        }
-        if (this.imageReader != null) {
-            this.imageReader.close();
-            this.imageReader = null;
         }
     }
 
     /**
      * Creates a camera preview, a CaptureSession and sets various parameters for this CaptureSession (calls disableAutmatics method)
      */
+    //TODO move function into CameraHandler
     protected void createCameraPreview(){
         try{
             SurfaceTexture texture = this.textureView.getSurfaceTexture();
@@ -351,10 +349,10 @@ public class CameraActivity extends Activity {
                 width = jpegSizes[0].getWidth();
                 height = jpegSizes[0].getHeight();
             }
-            Bitmap bitmap = textureView.getBitmap(width,height);
+            Bitmap bitmap = this.textureView.getBitmap(width,height);
             int[] rgb =  RGBDecoder.getRGBCode(bitmap,width,height);
             double[] intensity = RGBDecoder.getImageIntensity(rgb);
-            graphData = RGBDecoder.computeIntensityMean(intensity,width,height);
+            this.graphData = RGBDecoder.computeIntensityMean(intensity,width,height);
             saveCurrentMeasure();
             updateUIGraph();
 

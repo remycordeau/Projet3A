@@ -65,6 +65,7 @@ public class CameraActivity extends Activity {
     private HandlerThread backgroundThread;
     private android.os.Handler backgroundHandler;
     private ContextWrapper contextWrapper;
+    private CameraHandler cameraHandler;
     private double[] graphData = null;
     private HashMap<String,double[]> definitiveMeasures = new HashMap<>();
 
@@ -73,6 +74,7 @@ public class CameraActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera_layout);
         this.contextWrapper = new ContextWrapper(getApplicationContext());
+        this.cameraHandler = new CameraHandler();
         enableListeners();
     }
 
@@ -90,7 +92,7 @@ public class CameraActivity extends Activity {
     @Override
     protected void onPause() {
         Log.e(TAG, "onPause");
-        closeCamera();
+        this.cameraHandler.closeCamera(this.cameraDevice);
         stopBackgroundThread();
         super.onPause();
     }
@@ -248,22 +250,10 @@ public class CameraActivity extends Activity {
                 requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
             }
         }
-        //TODO put this code into CameraHandler (except call to openCamera)
+        //TODO check for first argument ?
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        this.cameraHandler.openCamera(this,this.imageDimension,this.contextWrapper,cameraManager);
         try{
-            if(version <= 22){
-                Log.e(TAG,"Cannot activate flash light, API level too low");
-                Toast flashError = Toast.makeText(CameraActivity.this,"Cannot activate flash light, API level too low",Toast.LENGTH_LONG);
-                flashError.show();
-
-            }else{
-                cameraManager.setTorchMode(this.cameraId,true);
-            }
-            this.cameraId = cameraManager.getCameraIdList()[0];
-            CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(this.cameraId);
-            StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            assert map != null;
-            this.imageDimension =  map.getOutputSizes(SurfaceTexture.class)[0];
             cameraManager.openCamera(cameraId,stateCallback,null);
         }catch(CameraAccessException e){
             e.printStackTrace();
@@ -280,17 +270,6 @@ public class CameraActivity extends Activity {
                 Toast.makeText(CameraActivity.this, "Sorry, you can't use this app without granting permission", Toast.LENGTH_LONG).show();
                 finish();
             }
-        }
-    }
-
-    /**
-     * Closes camera and image reader
-     */
-    //TODO to remove
-    private void closeCamera() {
-        if (cameraDevice != null) {
-            cameraDevice.close();
-            cameraDevice = null;
         }
     }
 

@@ -16,19 +16,13 @@ import android.widget.Toast;
 public class CameraHandler {
 
     private static final String TAG = "Camera Handler";
-    private CameraDevice cameraDevice;
     private String cameraId;
 
-
-    public CameraHandler(CameraDevice cameraDevice){
-        this.cameraDevice = cameraDevice;
-    }
 
     /**
      * opens the camera (if allowed), activates flash light and sets image dimension for capture
      */
-    private void openCamera(Context context, Size imageDimension, ContextWrapper contextWrapper){
-        CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+    public void openCamera(Context context, Size imageDimension, ContextWrapper contextWrapper,CameraManager cameraManager){
         try{
             int version = Build.VERSION.SDK_INT;
             if(version <= 22){
@@ -52,7 +46,7 @@ public class CameraHandler {
     /**
      * Closes camera device
      **/
-    private void closeCamera() {
+    public void closeCamera(CameraDevice cameraDevice) {
         if (cameraDevice != null) {
             cameraDevice.close();
             cameraDevice = null;

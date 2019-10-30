@@ -20,6 +20,7 @@ import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
@@ -73,6 +74,8 @@ public class CameraActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera_layout);
+        CameraCalibration cameraCalibration = new CameraCalibration((SurfaceView) findViewById(R.id.calibration));
+        cameraCalibration.drawCalibrationLines();
         this.contextWrapper = new ContextWrapper(getApplicationContext());
         this.cameraHandler = new CameraHandler();
         enableListeners();
@@ -250,10 +253,10 @@ public class CameraActivity extends Activity {
                 requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
             }
         }
-        //TODO check for first argument ?
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        this.cameraHandler.openCamera(this,this.imageDimension,this.contextWrapper,cameraManager);
+        this.imageDimension = this.cameraHandler.openCamera(this,cameraManager);
         try{
+            this.cameraId = cameraManager.getCameraIdList()[0];
             cameraManager.openCamera(cameraId,stateCallback,null);
         }catch(CameraAccessException e){
             e.printStackTrace();
@@ -276,7 +279,6 @@ public class CameraActivity extends Activity {
     /**
      * Creates a camera preview, a CaptureSession and sets various parameters for this CaptureSession (calls disableAutmatics method)
      */
-    //TODO move function into CameraHandler
     protected void createCameraPreview(){
         try{
             SurfaceTexture texture = this.textureView.getSurfaceTexture();

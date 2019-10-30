@@ -20,9 +20,9 @@ public class CameraHandler {
 
 
     /**
-     * opens the camera (if allowed), activates flash light and sets image dimension for capture
+     * activates flash light and returns image dimension for capture
      */
-    public void openCamera(Context context, Size imageDimension, ContextWrapper contextWrapper,CameraManager cameraManager){
+    public Size openCamera(Context context,CameraManager cameraManager){
         try{
             int version = Build.VERSION.SDK_INT;
             if(version <= 22){
@@ -37,9 +37,11 @@ public class CameraHandler {
             CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(this.cameraId);
             StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;
-            imageDimension =  map.getOutputSizes(SurfaceTexture.class)[0];
+            Size imageDimension =  map.getOutputSizes(SurfaceTexture.class)[0];
+            return imageDimension;
         }catch(CameraAccessException e){
             e.printStackTrace();
+            return null;
         }
     }
 

@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginStart="80dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:background="@color/buttonBackground"
         android:text="@string/take_picture"
@@ -78,10 +78,10 @@
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/texture"
-        app:layout_constraintVertical_bias="0.944" />
+        app:layout_constraintVertical_bias="0.964" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -90,12 +90,11 @@
         android:layout_height="93dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="120dp"
         android:translationZ="1dp"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
@@ -114,15 +113,62 @@
         android:id="@+id/validateButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="44dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="80dp"
         android:background="@color/buttonBackground"
         android:text="@string/validate_measure_button"
         android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.509"
+        app:layout_constraintEnd_toStartOf="@+id/calibrationButton"
+        app:layout_constraintHorizontal_bias="0.014"
         app:layout_constraintStart_toEndOf="@+id/btn_takepicture"
         app:layout_constraintTop_toBottomOf="@+id/save_picture_button" />
+
+    <SeekBar
+        android:id="@+id/calibrationRight"
+        android:layout_width="343dp"
+        android:layout_height="30dp"
+        android:layout_marginBottom="30dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/calibrationTop"
+        tools:layout_editor_absoluteX="34dp" />
+
+    <SeekBar
+        android:id="@+id/calibrationTop"
+        android:layout_width="343dp"
+        android:layout_height="30dp"
+        android:layout_marginBottom="30dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/calibrationLeft"
+        tools:layout_editor_absoluteX="34dp" />
+
+    <SeekBar
+        android:id="@+id/calibrationBottom"
+        android:layout_width="343dp"
+        android:layout_height="30dp"
+        android:layout_marginBottom="54dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:layout_editor_absoluteX="34dp" />
+
+    <SeekBar
+        android:id="@+id/calibrationLeft"
+        android:layout_width="343dp"
+        android:layout_height="30dp"
+        android:layout_marginBottom="30dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/calibrationBottom"
+        tools:layout_editor_absoluteX="34dp" />
+
+    <Button
+        android:id="@+id/calibrationButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@color/buttonBackground"
+        android:text="@string/calibrate_button"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clearButton" />
 
 </android.support.constraint.ConstraintLayout>

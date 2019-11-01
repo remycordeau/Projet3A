@@ -35,7 +35,7 @@ public class CameraCalibration {
                     Log.e("TEST",""+width+" "+height);
                     Paint paint = new Paint();
                     paint.setColor(Color.RED);
-                    paint.setStrokeWidth(10);
+                    paint.setStrokeWidth(5);
                     paint.setStyle(Paint.Style.STROKE);
                     canvas.drawLine(0,0,0,height,paint);
                     canvas.drawLine(0,0,width,0,paint);

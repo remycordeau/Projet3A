@@ -25,6 +25,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.Toast;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
@@ -55,8 +56,11 @@ public class CameraActivity extends Activity {
     private Button saveDataButton;
     private Button clearGraphButton;
     private Button validateButton;
+    private Button calibrateButton;
     private Boolean isReferenceSaved = false;
     private Boolean isSampleSaved = false;
+    private Boolean isCalibrating = false;
+    private CameraCalibration cameraCalibration;
     private TextureView textureView;
     private String cameraId;
     protected CameraDevice cameraDevice;
@@ -74,10 +78,10 @@ public class CameraActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera_layout);
-        CameraCalibration cameraCalibration = new CameraCalibration((SurfaceView) findViewById(R.id.calibration));
-        cameraCalibration.drawCalibrationLines();
         this.contextWrapper = new ContextWrapper(getApplicationContext());
         this.cameraHandler = new CameraHandler();
+        this.cameraCalibration = new CameraCalibration((SurfaceView) findViewById(R.id.calibration));
+        this.cameraCalibration.drawCalibrationLines();
         enableListeners();
     }
 
@@ -114,6 +118,7 @@ public class CameraActivity extends Activity {
         this.takePictureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(isCalibrating) return;
                 displayProcessingCircle();
                 setImagesCapture();
             }
@@ -125,6 +130,7 @@ public class CameraActivity extends Activity {
             @Override
             public void onClick(View view) {
                 try {
+                    if(isCalibrating) return;
                     savePicture("Reference");
                 }catch (IOException e){
                     Log.e(TAG,e.toString());
@@ -137,6 +143,7 @@ public class CameraActivity extends Activity {
         this.saveDataButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(isCalibrating) return;
                 try {
                     GraphView graphView = findViewById(R.id.intensityGraph);
                     if (isReferenceSaved && graphView.getSeries().size() >= 2){
@@ -155,6 +162,7 @@ public class CameraActivity extends Activity {
         this.clearGraphButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(isCalibrating) return;
                 clearGraph();
             }
         });
@@ -164,6 +172,7 @@ public class CameraActivity extends Activity {
         this.validateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(isCalibrating) return;
                 if(graphData != null && isReferenceSaved && isSampleSaved){
                     Intent intent = new Intent(CameraActivity.this, AnalysisActivity.class);
                     assert definitiveMeasures.containsKey("Reference") && definitiveMeasures.containsKey("Sample");
@@ -174,6 +183,42 @@ public class CameraActivity extends Activity {
                 }
             }
         });
+
+        this.calibrateButton = findViewById(R.id.calibrationButton);
+        assert this.calibrateButton != null;
+        this.calibrateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!isCalibrating){
+                    enableCalibration();
+                }else{
+                    endCalibration();
+                }
+            }
+        });
+    }
+
+    private void endCalibration() {
+        this.isCalibrating = false;
+        findViewById(R.id.intensityGraph).setVisibility(View.VISIBLE);
+        findViewById(R.id.calibrationBottom).setVisibility(View.INVISIBLE);
+        findViewById(R.id.calibrationTop).setVisibility(View.INVISIBLE);
+        findViewById(R.id.calibrationLeft).setVisibility(View.INVISIBLE);
+        findViewById(R.id.calibrationRight).setVisibility(View.INVISIBLE);
+        //remove lines
+    }
+
+    private void enableCalibration() {
+        this.isCalibrating = true;
+
+        GraphView graphView = findViewById(R.id.intensityGraph);
+        if (graphView.getVisibility() == View.VISIBLE) {
+            graphView.setVisibility(View.INVISIBLE);
+        }
+        findViewById(R.id.calibrationBottom).setVisibility(View.VISIBLE);
+        findViewById(R.id.calibrationTop).setVisibility(View.VISIBLE);
+        findViewById(R.id.calibrationLeft).setVisibility(View.VISIBLE);
+        findViewById(R.id.calibrationRight).setVisibility(View.VISIBLE);
     }
 
     TextureView.SurfaceTextureListener textureListener = new TextureView.SurfaceTextureListener() {

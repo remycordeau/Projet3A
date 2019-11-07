@@ -11,21 +11,18 @@ import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.*;
-import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.ImageReader;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.HandlerThread;
+import android.support.constraint.ConstraintLayout;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
-import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
-import android.widget.SeekBar;
 import android.widget.Toast;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
@@ -60,7 +57,7 @@ public class CameraActivity extends Activity {
     private Boolean isReferenceSaved = false;
     private Boolean isSampleSaved = false;
     private Boolean isCalibrating = false;
-    private CameraCalibration cameraCalibration;
+    private CameraCalibrationView cameraCalibrationView;
     private TextureView textureView;
     private String cameraId;
     protected CameraDevice cameraDevice;
@@ -76,12 +73,17 @@ public class CameraActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera_layout);
         this.contextWrapper = new ContextWrapper(getApplicationContext());
         this.cameraHandler = new CameraHandler();
-        this.cameraCalibration = new CameraCalibration((SurfaceView) findViewById(R.id.calibration));
-        this.cameraCalibration.drawCalibrationLines();
+
+        //adding custom surface view above the texture view
+        ConstraintLayout calibrationViewLayout = findViewById(R.id.calibrationViewLayout);
+        this.cameraCalibrationView = new CameraCalibrationView((getApplicationContext()));
+        calibrationViewLayout.addView(this.cameraCalibrationView);
+
         enableListeners();
     }
 
@@ -200,12 +202,12 @@ public class CameraActivity extends Activity {
 
     private void endCalibration() {
         this.isCalibrating = false;
+        this.cameraCalibrationView.eraseLines();
         findViewById(R.id.intensityGraph).setVisibility(View.VISIBLE);
         findViewById(R.id.calibrationBottom).setVisibility(View.INVISIBLE);
         findViewById(R.id.calibrationTop).setVisibility(View.INVISIBLE);
         findViewById(R.id.calibrationLeft).setVisibility(View.INVISIBLE);
         findViewById(R.id.calibrationRight).setVisibility(View.INVISIBLE);
-        //remove lines
     }
 
     private void enableCalibration() {
@@ -219,6 +221,8 @@ public class CameraActivity extends Activity {
         findViewById(R.id.calibrationTop).setVisibility(View.VISIBLE);
         findViewById(R.id.calibrationLeft).setVisibility(View.VISIBLE);
         findViewById(R.id.calibrationRight).setVisibility(View.VISIBLE);
+
+        this.cameraCalibrationView.drawLines();
     }
 
     TextureView.SurfaceTextureListener textureListener = new TextureView.SurfaceTextureListener() {

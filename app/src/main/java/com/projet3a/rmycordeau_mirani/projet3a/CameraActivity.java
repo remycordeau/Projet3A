@@ -23,6 +23,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.Toast;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
@@ -54,6 +55,14 @@ public class CameraActivity extends Activity {
     private Button clearGraphButton;
     private Button validateButton;
     private Button calibrateButton;
+    private SeekBar calibrationLeft;
+    private SeekBar calibrationRight;
+    private SeekBar calibrationTop;
+    private SeekBar calibrationBottom;
+    private int lastSeekBarValLeft = 0;
+    private int lastSeekBarValRight = 0;
+    private int lastSeekBarValBottom = 0;
+    private int lastSeekBarValTop = 0;
     private Boolean isReferenceSaved = false;
     private Boolean isSampleSaved = false;
     private Boolean isCalibrating = false;
@@ -81,7 +90,7 @@ public class CameraActivity extends Activity {
 
         //adding custom surface view above the texture view
         ConstraintLayout calibrationViewLayout = findViewById(R.id.calibrationViewLayout);
-        this.cameraCalibrationView = new CameraCalibrationView((getApplicationContext()));
+        this.cameraCalibrationView = new CameraCalibrationView(this);
         calibrationViewLayout.addView(this.cameraCalibrationView);
 
         enableListeners();
@@ -111,9 +120,13 @@ public class CameraActivity extends Activity {
      */
     private void enableListeners() {
 
+        /* Adding listener to texture */
+
         this.textureView = findViewById(R.id.texture);
         assert this.textureView != null;
         this.textureView.setSurfaceTextureListener(this.textureListener);
+
+        /* Adding listeners to the buttons */
 
         this.takePictureButton = findViewById(R.id.btn_takepicture);
         assert this.takePictureButton != null;
@@ -196,6 +209,124 @@ public class CameraActivity extends Activity {
                 }else{
                     endCalibration();
                 }
+            }
+        });
+    }
+
+    /**
+     * Adds listeners on seekbars when calibrationCameraView is fully initialized
+     */
+    public void enableSeekBarsListeners(){
+
+        this.calibrationBottom = findViewById(R.id.calibrationBottom);
+        assert this.calibrationBottom != null;
+        this.calibrationBottom.setMax(this.cameraCalibrationView.getHeight());
+        this.calibrationBottom.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
+                int shift = Math.abs(progress - lastSeekBarValBottom);
+                if (progress > lastSeekBarValBottom) { /*Seekbar moved to the right*/
+                    cameraCalibrationView.moveLine("Bottom line",shift);
+                }
+                else if (progress < lastSeekBarValBottom) { /*Seekbar moved to the left*/
+                    cameraCalibrationView.moveLine("Bottom line",-shift);
+                }
+                lastSeekBarValBottom = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        this.calibrationTop = findViewById(R.id.calibrationTop);
+        assert this.calibrationTop != null;
+        this.calibrationTop.setMax(this.cameraCalibrationView.getHeight());
+        this.calibrationTop.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
+                int shift = Math.abs(progress - lastSeekBarValTop);
+                if (progress > lastSeekBarValTop) { /*Seekbar moved to the right*/
+                    cameraCalibrationView.moveLine("Top line",shift);
+                }
+                else if (progress < lastSeekBarValTop) { /*Seekbar moved to the left*/
+                    cameraCalibrationView.moveLine("Top line",-shift);
+                }
+                lastSeekBarValTop = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        this.calibrationRight = findViewById(R.id.calibrationRight);
+        assert this.calibrationRight != null;
+        this.calibrationRight.setMax(this.cameraCalibrationView.getWidth());
+        this.calibrationRight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
+                    int shift = Math.abs(progress - lastSeekBarValRight);
+                    if (progress > lastSeekBarValRight) { /*Seekbar moved to the right*/
+                        cameraCalibrationView.moveLine("Right line",shift);
+                    }
+                    else if (progress < lastSeekBarValRight) { /*Seekbar moved to the left*/
+                        cameraCalibrationView.moveLine("Right line",-shift);
+                    }
+                    lastSeekBarValRight = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        this.calibrationLeft = findViewById(R.id.calibrationLeft);
+        assert this.calibrationLeft != null;
+        this.calibrationLeft.setMax(this.cameraCalibrationView.getWidth());
+        this.calibrationLeft.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
+                int shift = Math.abs(progress - lastSeekBarValLeft);
+                if (progress > lastSeekBarValLeft) { /*Seekbar moved to the right*/
+                    cameraCalibrationView.moveLine("Left line",shift);
+                }
+                else if (progress < lastSeekBarValLeft) { /*Seekbar moved to the left*/
+                    cameraCalibrationView.moveLine("Left line",-shift);
+                }
+                lastSeekBarValLeft = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
     }

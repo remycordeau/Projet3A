@@ -1,5 +1,8 @@
 package com.projet3a.rmycordeau_mirani.projet3a;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Line {
 
     private final String name;
@@ -34,6 +37,17 @@ public class Line {
         return this.yEnd;
     }
 
+    public String getLineType(){
+
+        if(this.xBegin == this.xEnd){
+            return "Vertical";
+        }else if(this.yBegin == this.yEnd){
+            return "Horizontal";
+        }else{
+            return null;
+        }
+    }
+
     public void translateLineOnX(int translateX){
         this.xBegin += translateX;
         this.xEnd += translateX;
@@ -43,4 +57,23 @@ public class Line {
         this.yBegin += translateY;
         this.yEnd += translateY;
     }
+
+    public List<Integer> getIntersection(Line line){
+
+        List<Integer> intersectionPoint = new ArrayList<>();
+
+        if(this.getLineType().equals("Vertical") && line.getLineType().equals("Horizontal")){
+
+            intersectionPoint.add(this.xBegin);
+            intersectionPoint.add(line.getYBegin());
+
+        }else if(this.getLineType().equals("Horizontal") && line.getLineType().equals("Vertical")){
+
+            intersectionPoint.add(line.getXBegin());
+            intersectionPoint.add(this.yBegin);
+        }
+
+        return intersectionPoint;
+    }
+
 }

@@ -332,13 +332,17 @@ public class CameraActivity extends Activity {
     }
 
     private void endCalibration() {
+
         this.isCalibrating = false;
         this.cameraCalibrationView.eraseLines();
+
         findViewById(R.id.intensityGraph).setVisibility(View.VISIBLE);
         findViewById(R.id.calibrationBottom).setVisibility(View.INVISIBLE);
         findViewById(R.id.calibrationTop).setVisibility(View.INVISIBLE);
         findViewById(R.id.calibrationLeft).setVisibility(View.INVISIBLE);
         findViewById(R.id.calibrationRight).setVisibility(View.INVISIBLE);
+
+        this.cameraCalibrationView.getCaptureZone();
     }
 
     private void enableCalibration() {
@@ -497,29 +501,19 @@ public class CameraActivity extends Activity {
             openCamera();
             return;
         }
-        CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        try {
-            CameraCharacteristics characteristics = manager.getCameraCharacteristics(this.cameraDevice.getId());
-            Size[] jpegSizes = null;
-            if (characteristics != null) {
-                jpegSizes = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP).getOutputSizes(ImageFormat.JPEG);
-            }
-            int width = this.imageDimension.getWidth();
-            int height = this.imageDimension.getHeight();
-            if (jpegSizes != null && 0 < jpegSizes.length) {
-                width = jpegSizes[0].getWidth();
-                height = jpegSizes[0].getHeight();
-            }
-            Bitmap bitmap = this.textureView.getBitmap(width,height);
-            int[] rgb =  RGBDecoder.getRGBCode(bitmap,width,height);
-            double[] intensity = RGBDecoder.getImageIntensity(rgb);
-            this.graphData = RGBDecoder.computeIntensityMean(intensity,width,height);
-            saveCurrentMeasure();
-            updateUIGraph();
 
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
+        int width = this.textureView.getWidth();
+        int height = this.textureView.getHeight();
+
+        Bitmap bitmap = this.textureView.getBitmap(width,height);
+        int [] captureZone = this.cameraCalibrationView.getCaptureZone();
+        Bitmap captureZoneBitmap = Bitmap.createBitmap(bitmap,captureZone[0],captureZone[1],captureZone[2],captureZone[3]);
+
+        int[] rgb =  RGBDecoder.getRGBCode(captureZoneBitmap,captureZone[2],captureZone[3]);
+        double[] intensity = RGBDecoder.getImageIntensity(rgb);
+        this.graphData = RGBDecoder.computeIntensityMean(intensity,captureZone[2],captureZone[3]);
+        saveCurrentMeasure();
+        updateUIGraph();
     }
 
     /**

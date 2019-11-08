@@ -130,7 +130,7 @@
         android:layout_marginBottom="30dp"
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/calibrationTop"
-        tools:layout_editor_absoluteX="34dp" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <SeekBar
         android:id="@+id/calibrationTop"
@@ -139,7 +139,7 @@
         android:layout_marginBottom="30dp"
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/calibrationLeft"
-        tools:layout_editor_absoluteX="34dp" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <SeekBar
         android:id="@+id/calibrationBottom"
@@ -148,7 +148,7 @@
         android:layout_marginBottom="54dp"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:layout_editor_absoluteX="34dp" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <SeekBar
         android:id="@+id/calibrationLeft"
@@ -157,7 +157,7 @@
         android:layout_marginBottom="30dp"
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/calibrationBottom"
-        tools:layout_editor_absoluteX="34dp" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/calibrationButton"

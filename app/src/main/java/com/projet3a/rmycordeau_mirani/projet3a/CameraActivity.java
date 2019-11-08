@@ -63,6 +63,7 @@ public class CameraActivity extends Activity {
     private int lastSeekBarValRight = 0;
     private int lastSeekBarValBottom = 0;
     private int lastSeekBarValTop = 0;
+    private Boolean isDefaultCalibrationDone = false;
     private Boolean isReferenceSaved = false;
     private Boolean isSampleSaved = false;
     private Boolean isCalibrating = false;
@@ -134,8 +135,12 @@ public class CameraActivity extends Activity {
             @Override
             public void onClick(View view) {
                 if(isCalibrating) return;
-                displayProcessingCircle();
-                setImagesCapture();
+                if(isDefaultCalibrationDone){
+                    displayProcessingCircle();
+                    setImagesCapture();
+                }else{
+                    Toast.makeText(CameraActivity.this,"Please calibrate before taking picture",Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -204,6 +209,9 @@ public class CameraActivity extends Activity {
         this.calibrateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(!isDefaultCalibrationDone){
+                    isDefaultCalibrationDone = true;
+                }
                 if(!isCalibrating){
                     enableCalibration();
                 }else{

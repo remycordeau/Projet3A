@@ -35,7 +35,7 @@ public class CameraCalibrationView extends SurfaceView implements SurfaceHolder.
         if(this.paint == null){
             this.paint = new Paint();
             this.paint.setColor(Color.RED);
-            this.paint.setStrokeWidth(5);
+            this.paint.setStrokeWidth(1);
             this.paint.setStyle(Paint.Style.STROKE);
         }
 

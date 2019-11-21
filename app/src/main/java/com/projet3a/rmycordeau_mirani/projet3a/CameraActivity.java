@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.*;
 import android.os.Build;
@@ -22,7 +21,6 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.Toast;
 import com.jjoe64.graphview.GraphView;
@@ -53,7 +51,6 @@ public class CameraActivity extends Activity {
     private Button saveReferenceButton;
     private Button saveDataButton;
     private Button clearGraphButton;
-    private Button validateButton;
     private Button calibrateButton;
     private SeekBar calibrationLeft;
     private SeekBar calibrationRight;
@@ -136,7 +133,7 @@ public class CameraActivity extends Activity {
             public void onClick(View view) {
                 if(isCalibrating) return;
                 if(isDefaultCalibrationDone){
-                    displayProcessingCircle();
+                    displayCreationMessage();
                     setImagesCapture();
                 }else{
                     Toast.makeText(CameraActivity.this,"Please calibrate before taking picture",Toast.LENGTH_SHORT).show();
@@ -168,6 +165,12 @@ public class CameraActivity extends Activity {
                     GraphView graphView = findViewById(R.id.intensityGraph);
                     if (isReferenceSaved && graphView.getSeries().size() >= 2){
                         savePicture("Sample");
+                        if(graphData != null && isReferenceSaved && isSampleSaved) {
+                            Intent intent = new Intent(CameraActivity.this, AnalysisActivity.class);
+                            assert definitiveMeasures.containsKey("Reference") && definitiveMeasures.containsKey("Sample");
+                            intent.putExtra(GRAPH_DATA_KEY, definitiveMeasures);
+                            startActivity(intent);
+                        }
                     }else{
                         Toast.makeText(CameraActivity.this,"You must first save the reference",Toast.LENGTH_SHORT).show();
                     }
@@ -184,23 +187,6 @@ public class CameraActivity extends Activity {
             public void onClick(View view) {
                 if(isCalibrating) return;
                 clearGraph();
-            }
-        });
-
-        this.validateButton = findViewById(R.id.validateButton);
-        assert this.validateButton != null;
-        this.validateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(isCalibrating) return;
-                if(graphData != null && isReferenceSaved && isSampleSaved){
-                    Intent intent = new Intent(CameraActivity.this, AnalysisActivity.class);
-                    assert definitiveMeasures.containsKey("Reference") && definitiveMeasures.containsKey("Sample");
-                    intent.putExtra(GRAPH_DATA_KEY,definitiveMeasures);
-                    startActivity(intent);
-                }else{
-                    Toast.makeText(CameraActivity.this,"You must complete both captures before validating",Toast.LENGTH_SHORT).show();
-                }
             }
         });
 
@@ -349,6 +335,10 @@ public class CameraActivity extends Activity {
         findViewById(R.id.calibrationTop).setVisibility(View.INVISIBLE);
         findViewById(R.id.calibrationLeft).setVisibility(View.INVISIBLE);
         findViewById(R.id.calibrationRight).setVisibility(View.INVISIBLE);
+        findViewById(R.id.TextRight).setVisibility(View.INVISIBLE);
+        findViewById(R.id.TextTop).setVisibility(View.INVISIBLE);
+        findViewById(R.id.TextLeft).setVisibility(View.INVISIBLE);
+        findViewById(R.id.TextBottom).setVisibility(View.INVISIBLE);
 
         this.cameraCalibrationView.getCaptureZone();
     }
@@ -364,6 +354,10 @@ public class CameraActivity extends Activity {
         findViewById(R.id.calibrationTop).setVisibility(View.VISIBLE);
         findViewById(R.id.calibrationLeft).setVisibility(View.VISIBLE);
         findViewById(R.id.calibrationRight).setVisibility(View.VISIBLE);
+        findViewById(R.id.TextRight).setVisibility(View.VISIBLE);
+        findViewById(R.id.TextTop).setVisibility(View.VISIBLE);
+        findViewById(R.id.TextLeft).setVisibility(View.VISIBLE);
+        findViewById(R.id.TextBottom).setVisibility(View.VISIBLE);
 
         this.cameraCalibrationView.drawLines();
     }
@@ -570,10 +564,6 @@ public class CameraActivity extends Activity {
                     public void run() {
                         if(graphView.getVisibility() != View.VISIBLE){
                             graphView.setVisibility(View.VISIBLE);
-                            findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-                        }else{
-                            findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-                            return;
                         }
                     }
                 });
@@ -628,14 +618,12 @@ public class CameraActivity extends Activity {
     }
 
     /**
-     * Displays a progress bar in the UI
+     * Displays a message in the UI
      */
-    private void displayProcessingCircle(){
+    private void displayCreationMessage(){
      runOnUiThread(new Runnable() {
          @Override
          public void run() {
-             ProgressBar progressBar = findViewById(R.id.progressBar);
-             progressBar.setVisibility(View.VISIBLE);
              Toast.makeText(CameraActivity.this,"Creating graph...",Toast.LENGTH_SHORT).show();
          }
      });

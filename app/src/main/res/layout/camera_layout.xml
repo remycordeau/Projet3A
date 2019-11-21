@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="80dp"
         android:layout_marginTop="8dp"
         android:background="@color/buttonBackground"
         android:text="@string/take_picture"
@@ -70,8 +70,8 @@
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/intensityGraph"
-        android:layout_width="match_parent"
-        android:layout_height="267dp"
+        android:layout_width="393dp"
+        android:layout_height="276dp"
         android:layout_alignParentBottom="true"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
@@ -82,20 +82,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/texture"
         app:layout_constraintVertical_bias="0.964" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="248dp"
-        android:layout_height="93dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:translationZ="1dp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/clearButton"
@@ -109,24 +95,10 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/texture" />
 
-    <Button
-        android:id="@+id/validateButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="44dp"
-        android:layout_marginTop="8dp"
-        android:background="@color/buttonBackground"
-        android:text="@string/validate_measure_button"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toStartOf="@+id/calibrationButton"
-        app:layout_constraintHorizontal_bias="0.014"
-        app:layout_constraintStart_toEndOf="@+id/btn_takepicture"
-        app:layout_constraintTop_toBottomOf="@+id/save_picture_button" />
-
     <SeekBar
         android:id="@+id/calibrationRight"
-        android:layout_width="343dp"
-        android:layout_height="30dp"
+        android:layout_width="298dp"
+        android:layout_height="37dp"
         android:layout_marginBottom="30dp"
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/calibrationTop"
@@ -134,7 +106,7 @@
 
     <SeekBar
         android:id="@+id/calibrationTop"
-        android:layout_width="343dp"
+        android:layout_width="298dp"
         android:layout_height="30dp"
         android:layout_marginBottom="30dp"
         android:visibility="invisible"
@@ -143,7 +115,7 @@
 
     <SeekBar
         android:id="@+id/calibrationBottom"
-        android:layout_width="343dp"
+        android:layout_width="298dp"
         android:layout_height="30dp"
         android:layout_marginBottom="54dp"
         android:visibility="invisible"
@@ -152,7 +124,7 @@
 
     <SeekBar
         android:id="@+id/calibrationLeft"
-        android:layout_width="343dp"
+        android:layout_width="298dp"
         android:layout_height="30dp"
         android:layout_marginBottom="30dp"
         android:visibility="invisible"
@@ -161,14 +133,56 @@
 
     <Button
         android:id="@+id/calibrationButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="94dp"
+        android:layout_height="47dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="104dp"
         android:background="@color/buttonBackground"
         android:text="@string/calibrate_button"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/btn_takepicture"
         app:layout_constraintTop_toBottomOf="@+id/clearButton" />
+
+    <TextView
+        android:id="@+id/TextRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="41dp"
+        android:text="Right"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/TextTop" />
+
+    <TextView
+        android:id="@+id/TextTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="41dp"
+        android:text="Top"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/TextLeft"
+        tools:layout_editor_absoluteX="3dp" />
+
+    <TextView
+        android:id="@+id/TextLeft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="42dp"
+        android:text="Left"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/TextBottom"
+        tools:layout_editor_absoluteX="3dp" />
+
+    <TextView
+        android:id="@+id/TextBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="64dp"
+        android:text="Bottom"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:layout_editor_absoluteX="0dp" />
 
 </android.support.constraint.ConstraintLayout>

@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.*;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -92,25 +93,6 @@ public class CameraActivity extends Activity {
         calibrationViewLayout.addView(this.cameraCalibrationView);
 
         enableListeners();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.e(TAG, "onResume");
-        startBackgroundThread();
-        if (textureView.isAvailable()) {
-            openCamera();
-        } else {
-            textureView.setSurfaceTextureListener(textureListener);
-        }
-    }
-    @Override
-    protected void onPause() {
-        Log.e(TAG, "onPause");
-        this.cameraHandler.closeCamera(this.cameraDevice);
-        stopBackgroundThread();
-        super.onPause();
     }
 
     /**
@@ -394,39 +376,17 @@ public class CameraActivity extends Activity {
 
         @Override
         public void onDisconnected(CameraDevice camera) {
-            cameraDevice.close();
+            //cameraDevice.close();
         }
 
         @Override
         public void onError(CameraDevice camera, int i) {
             if(cameraDevice != null){
-                cameraDevice.close();
-                cameraDevice = null;
+                //cameraDevice.close();
+                //cameraDevice = null;
             }
         }
     };
-
-    /**
-     * Starts background thread for camera
-    */
-    protected void startBackgroundThread(){
-        this.backgroundThread = new HandlerThread("Camera background");
-        this.backgroundThread.start();
-        this.backgroundHandler = new android.os.Handler(this.backgroundThread.getLooper());
-    }
-
-    /**
-     * Stops background thread
-     */
-    protected void stopBackgroundThread(){
-        this.backgroundThread.quitSafely();
-        try{
-            this.backgroundThread.join();
-            this.backgroundThread = null;
-        }catch(InterruptedException e){
-            e.printStackTrace();
-        }
-    }
 
     /**
      * opens the camera (if allowed), activates flash light and sets image dimension for capture
@@ -439,10 +399,14 @@ public class CameraActivity extends Activity {
                 requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
             }
         }
-        CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        this.imageDimension = this.cameraHandler.openCamera(this,cameraManager);
         try{
+            CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
             this.cameraId = cameraManager.getCameraIdList()[0];
+            this.cameraHandler.activateFlashLight(this,(CameraManager) getSystemService(Context.CAMERA_SERVICE));
+            CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(this.cameraId);
+            StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            assert map != null;
+            this.imageDimension =  map.getOutputSizes(SurfaceTexture.class)[0];
             cameraManager.openCamera(cameraId,stateCallback,null);
         }catch(CameraAccessException e){
             e.printStackTrace();
@@ -603,7 +567,8 @@ public class CameraActivity extends Activity {
      */
     private void disableAutomatics(CaptureRequest.Builder captureBuilder, CameraCaptureSession session, CameraCaptureSession.CaptureCallback callback) {
         try {
-            captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
+            captureBuilder.set(CaptureRequest.FLASH_MODE,CaptureRequest.FLASH_MODE_TORCH);
+            //captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE,CaptureRequest.CONTROL_AE_MODE_OFF);
             captureBuilder.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF);
             captureBuilder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF);
@@ -658,5 +623,14 @@ public class CameraActivity extends Activity {
                 }
             }
         }
+    }
+
+    @Override
+    public void onPause(){
+       super.onPause();
+       Log.e(TAG,"On Pause");
+       if(this.cameraDevice != null){
+           this.cameraDevice.close();
+       }
     }
 }

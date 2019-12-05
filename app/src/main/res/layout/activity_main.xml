@@ -8,14 +8,13 @@
     tools:context=".MainActivity">
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/startCaptureButton"
         android:layout_width="129dp"
         android:layout_height="56dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="24dp"
         android:background="@color/buttonBackground"
-        android:onClick="startCameraActivity"
         android:text="@string/start_capture"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.53"

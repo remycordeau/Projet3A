@@ -47,7 +47,6 @@ public class CameraActivity extends Activity {
 
     private static final String TAG = "Camera Activity";
     public static final String GRAPH_DATA_KEY = "Graph Data";
-    private static final int REQUEST_CAMERA_PERMISSION = 200;
     private Button takePictureButton;
     private Button saveReferenceButton;
     private Button saveDataButton;
@@ -391,14 +390,7 @@ public class CameraActivity extends Activity {
     /**
      * opens the camera (if allowed), activates flash light and sets image dimension for capture
      */
-    private void openCamera(){
-        int version = Build.VERSION.SDK_INT;
-        if(version > 22){
-            requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
-            if(this.contextWrapper.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
-                requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_CAMERA_PERMISSION);
-            }
-        }
+    private void openCamera() throws SecurityException{
         try{
             CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
             this.cameraId = cameraManager.getCameraIdList()[0];
@@ -410,19 +402,6 @@ public class CameraActivity extends Activity {
             cameraManager.openCamera(cameraId,stateCallback,null);
         }catch(CameraAccessException e){
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * Called when a access to the camera is requested. If the permission is denied, this function ends the current activity
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                Toast.makeText(CameraActivity.this, "Sorry, you can't use this app without granting permission", Toast.LENGTH_LONG).show();
-                finish();
-            }
         }
     }
 

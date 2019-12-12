@@ -394,7 +394,7 @@ public class CameraActivity extends Activity {
         try{
             CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
             this.cameraId = cameraManager.getCameraIdList()[0];
-            this.cameraHandler.activateFlashLight(this,(CameraManager) getSystemService(Context.CAMERA_SERVICE));
+            //this.cameraHandler.activateFlashLight(this,(CameraManager) getSystemService(Context.CAMERA_SERVICE));
             CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(this.cameraId);
             StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;
@@ -547,7 +547,7 @@ public class CameraActivity extends Activity {
     private void disableAutomatics(CaptureRequest.Builder captureBuilder, CameraCaptureSession session, CameraCaptureSession.CaptureCallback callback) {
         try {
             captureBuilder.set(CaptureRequest.FLASH_MODE,CaptureRequest.FLASH_MODE_TORCH);
-            //captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
+            captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE,CaptureRequest.CONTROL_AE_MODE_OFF);
             captureBuilder.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF);
             captureBuilder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF);

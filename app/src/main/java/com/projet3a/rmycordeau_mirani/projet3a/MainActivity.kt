@@ -25,9 +25,15 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         var startCaptureButton: Button = findViewById(R.id.startCaptureButton)
         startCaptureButton.setOnClickListener{
             view -> startCameraActivity(view)
+        }
+
+        var wavelengthCalibrationButton: Button = findViewById(R.id.wavelengthCalibrationButton)
+        wavelengthCalibrationButton.setOnClickListener{
+            view ->  startCalibrationActivity(view)
         }
         if (Build.VERSION.SDK_INT <= 22) {
             permissionsGranted = true
@@ -35,6 +41,17 @@ class MainActivity : Activity() {
             askPermissions()
         }
     }
+
+    private fun startCalibrationActivity(view: View){
+        if (permissionsGranted) {
+            val intent = Intent(this, WavelengthCalibrationActivity::class.java)
+            startActivity(intent)
+        } else if (Build.VERSION.SDK_INT >= 23) {
+            askPermissions()
+            return
+        }
+    }
+
 
     private fun startCameraActivity(view: View) {
         if (permissionsGranted) {

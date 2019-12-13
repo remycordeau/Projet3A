@@ -14,7 +14,6 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Bundle;
-import android.os.HandlerThread;
 import android.support.constraint.ConstraintLayout;
 import android.util.Log;
 import android.util.Size;
@@ -28,15 +27,15 @@ import java.util.Arrays;
 public class WavelengthCalibrationActivity extends Activity {
 
     private static final String TAG = "Wavelength Calibration";
+    private Boolean isCalibrating = false;
     private Button validateButton;
-    private CameraCalibrationView cameraCalibrationView;
+    private WavelengthCalibrationView wavelengthCalibrationView;
     private TextureView textureView;
     private String cameraId;
     protected CameraDevice cameraDevice;
     protected CameraCaptureSession cameraCaptureSession;
     protected CaptureRequest.Builder captureRequestBuilder;
     private Size imageDimension;
-    private HandlerThread backgroundThread;
     private android.os.Handler backgroundHandler;
     private ContextWrapper contextWrapper;
 
@@ -49,8 +48,8 @@ public class WavelengthCalibrationActivity extends Activity {
 
         //adding custom surface view above the texture view
         ConstraintLayout calibrationViewLayout = findViewById(R.id.calibrationViewLayout);
-        this.cameraCalibrationView = new CameraCalibrationView(this);
-        calibrationViewLayout.addView(this.cameraCalibrationView);
+        this.wavelengthCalibrationView = new WavelengthCalibrationView(this);
+        calibrationViewLayout.addView(this.wavelengthCalibrationView);
 
         enableListeners();
     }
@@ -75,6 +74,10 @@ public class WavelengthCalibrationActivity extends Activity {
             public void onClick(View view) {
             }
         });
+    }
+
+    public void displayLine(){
+            this.wavelengthCalibrationView.drawLine();
     }
 
     private void endCalibration() {

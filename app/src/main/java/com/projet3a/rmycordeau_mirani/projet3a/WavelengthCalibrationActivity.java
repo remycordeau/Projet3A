@@ -27,7 +27,6 @@ import java.util.Arrays;
 public class WavelengthCalibrationActivity extends Activity {
 
     private static final String TAG = "Wavelength Calibration";
-    private Boolean isCalibrating = false;
     private Button validateButton;
     private WavelengthCalibrationView wavelengthCalibrationView;
     private TextureView textureView;
@@ -80,12 +79,6 @@ public class WavelengthCalibrationActivity extends Activity {
             this.wavelengthCalibrationView.drawLine();
     }
 
-    private void endCalibration() {
-    }
-
-    private void enableCalibration() {
-
-    }
 
     TextureView.SurfaceTextureListener textureListener = new TextureView.SurfaceTextureListener() {
         @Override

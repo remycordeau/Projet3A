@@ -7,7 +7,7 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 
@@ -21,6 +21,7 @@ public class WavelengthCalibrationView extends SurfaceView implements SurfaceHol
     private Canvas canvas;
     private int width;
     private int height;
+    private float startDragX, currenDragX = 0;
 
     public WavelengthCalibrationView(Context context){
         super(context);
@@ -50,7 +51,6 @@ public class WavelengthCalibrationView extends SurfaceView implements SurfaceHol
     private void initLine() {
         this.height = getHeight();
         this.width = getWidth();
-        Log.e("test",""+this.width);
         this.line = new Line("Calibration line",this.width/2,0,this.width/2,this.height);
         ((WavelengthCalibrationActivity)getContext()).displayLine();
     }
@@ -70,21 +70,35 @@ public class WavelengthCalibrationView extends SurfaceView implements SurfaceHol
         this.surfaceHolder.unlockCanvasAndPost(this.canvas);
     }
 
-    public void moveLineRigthwards(int shift){
+    public void translateLine(int shift){
         this.line.translateLineOnX(shift);
         eraseLine();
         drawLine();
     }
 
-    public void moveLineLeftwards(int shift){
-        this.line.translateLineOnX(-shift);
-        eraseLine();
-        drawLine();
+    @Override
+    public void surfaceCreated(SurfaceHolder surfaceHolder){
+        initLine();
     }
 
     @Override
-    public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        initLine();
+    /**
+     * Moves lines on touch or on drag
+     * */
+    public boolean onTouchEvent(MotionEvent event){
+        if (event.getAction() == MotionEvent.ACTION_DOWN) { // ACTION_DOWN -> finger is detected on screen
+            startDragX = event.getX();
+            int shift = (int)(startDragX - this.line.getXBegin());
+            this.translateLine(shift);
+
+        }else if (event.getAction() == MotionEvent.ACTION_UP){ // ACTION_UP -> finger is removed from screen
+            if(Math.abs(startDragX-this.line.getXBegin()) < 30){ // if the finger was put 30 pixels around the drawn line, the line is translated to the right/left accordingly
+                currenDragX = event.getX();
+                int shift = (int)(currenDragX - startDragX);
+                this.translateLine(shift);
+            }
+        }
+        return true;
     }
 
     @Override

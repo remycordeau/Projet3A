@@ -3,6 +3,7 @@ package com.projet3a.rmycordeau_mirani.projet3a;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -28,6 +29,12 @@ public class WavelengthCalibrationActivity extends Activity {
 
     private static final String TAG = "Wavelength Calibration";
     private Button validateButton;
+    private Button Button436;
+    private Button Button488;
+    private Button Button546;
+    private Button Button612;
+    private Button currentButton;
+    private int currentIndex;
     private WavelengthCalibrationView wavelengthCalibrationView;
     private TextureView textureView;
     private String cameraId;
@@ -37,6 +44,7 @@ public class WavelengthCalibrationActivity extends Activity {
     private Size imageDimension;
     private android.os.Handler backgroundHandler;
     private ContextWrapper contextWrapper;
+    private int[] wavelengthRaysPositions = new int[4];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,12 +79,96 @@ public class WavelengthCalibrationActivity extends Activity {
         this.validateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                for(Integer ent: wavelengthRaysPositions){
+                    if(ent == 0){
+                        Toast.makeText(getApplicationContext(),"Missing calibration for one wavelength value",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+            }
+        });
+
+        this.Button436 = findViewById(R.id.Button436);
+        assert this.Button436 != null;
+        this.Button436.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(currentButton != null){
+                    currentButton.setBackgroundColor(Color.argb(100,187,222,251));
+                }
+                currentButton = Button436;
+                currentButton.setBackgroundColor(Color.CYAN);
+                currentIndex = 0;
+            }
+        });
+
+        this.Button488 = findViewById(R.id.Button488);
+        assert this.Button488 != null;
+        this.Button488.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(currentButton != null){
+                    currentButton.setBackgroundColor(Color.argb(100,187,222,251));
+                }
+                currentButton = Button488;
+                currentButton.setBackgroundColor(Color.CYAN);
+                currentIndex = 1;
+            }
+        });
+
+        this.Button546 = findViewById(R.id.Button546);
+        assert this.Button546 != null;
+        this.Button546.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(currentButton != null){
+                    currentButton.setBackgroundColor(Color.argb(100,187,222,251));
+                }
+                currentButton = Button546;
+                currentButton.setBackgroundColor(Color.CYAN);
+                currentIndex = 2;
+            }
+        });
+
+        this.Button612 = findViewById(R.id.Button612);
+        assert this.Button612 != null;
+        this.Button612.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(currentButton != null){
+                    currentButton.setBackgroundColor(Color.argb(100,187,222,251));
+                }
+                currentButton = Button612;
+                currentButton.setBackgroundColor(Color.CYAN);
+                currentIndex = 3;
             }
         });
     }
 
+    /**
+     * Displays the calibration line
+     * */
     public void displayLine(){
-            this.wavelengthCalibrationView.drawLine();
+        this.wavelengthCalibrationView.drawLine();
+    }
+
+    /**
+     * stores the current wavelength ray position. If the calibration line is misplaced, the value is not stored and an error message is displayed
+     * */
+    public void updateWaveLengthPositions() {
+        if(this.currentButton != null){
+            int currentLinePosition = this.wavelengthCalibrationView.getXPositionOfDrawnLine();
+            for(int i = 0; i < wavelengthRaysPositions.length; i++){
+                if(i < currentIndex && wavelengthRaysPositions[i] > currentLinePosition){ // check if values in the tab before the currentIndex value are <= to the currentIndex value
+                    Toast.makeText(this,"The selected order is not correct",Toast.LENGTH_SHORT).show();
+                    return;
+                }else if(i > currentIndex && wavelengthRaysPositions[i] > 0  && wavelengthRaysPositions[i] <= currentLinePosition){ // check if values in the tab after the currentIndex value are >= to the currentIndex value
+                    Toast.makeText(this,"The selected order is not correct",Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+            this.wavelengthRaysPositions[this.currentIndex] = currentLinePosition;
+        }
     }
 
 
@@ -185,7 +277,6 @@ public class WavelengthCalibrationActivity extends Activity {
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE,CaptureRequest.CONTROL_AE_MODE_OFF);
             captureBuilder.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF);
             captureBuilder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF);
-            captureBuilder.set(CaptureRequest.CONTROL_AE_MODE,CaptureRequest.CONTROL_AE_MODE_OFF);
             captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,CaptureRequest.CONTROL_AF_MODE_OFF);
 
             CaptureRequest captureRequest = captureBuilder.build();

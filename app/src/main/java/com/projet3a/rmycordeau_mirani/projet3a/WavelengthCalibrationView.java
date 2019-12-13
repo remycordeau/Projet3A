@@ -48,6 +48,9 @@ public class WavelengthCalibrationView extends SurfaceView implements SurfaceHol
 
     }
 
+    /**
+     * inits the Line object that will be drawn
+     * */
     private void initLine() {
         this.height = getHeight();
         this.width = getWidth();
@@ -55,6 +58,9 @@ public class WavelengthCalibrationView extends SurfaceView implements SurfaceHol
         ((WavelengthCalibrationActivity)getContext()).displayLine();
     }
 
+    /**
+     * draws the line in the view, and updates the position of the line in the wavelength calibration activity
+     * */
     public void drawLine(){
         if(this.line == null){
             initLine();
@@ -62,18 +68,33 @@ public class WavelengthCalibrationView extends SurfaceView implements SurfaceHol
         this.canvas = this.surfaceHolder.lockCanvas();
         canvas.drawLine(line.getXBegin(),line.getYBegin(),line.getXEnd(),line.getYEnd(),paint);
         this.surfaceHolder.unlockCanvasAndPost(this.canvas);
+        ((WavelengthCalibrationActivity)getContext()).updateWaveLengthPositions();
     }
 
+    /**
+     * erases the line in the view
+     * */
     public void eraseLine(){
         this.canvas = this.surfaceHolder.lockCanvas();
         this.canvas.drawRect(0,0,width,height,clearPaint);
         this.surfaceHolder.unlockCanvasAndPost(this.canvas);
     }
 
+    /**
+     * translates the line in the view
+     * @param shift : the shift to translate the line
+     * */
     public void translateLine(int shift){
         this.line.translateLineOnX(shift);
         eraseLine();
         drawLine();
+    }
+
+    /**
+     * returns the x coordinate of a point of the line
+     * */
+    public int getXPositionOfDrawnLine(){
+        return this.line.getXBegin();
     }
 
     @Override
@@ -83,7 +104,7 @@ public class WavelengthCalibrationView extends SurfaceView implements SurfaceHol
 
     @Override
     /**
-     * Moves lines on touch or on drag
+     * Moves line on touch or on drag
      * */
     public boolean onTouchEvent(MotionEvent event){
         if (event.getAction() == MotionEvent.ACTION_DOWN) { // ACTION_DOWN -> finger is detected on screen

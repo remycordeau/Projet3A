@@ -472,20 +472,29 @@ public class CameraActivity extends Activity {
             @Override
             public void run() {
 
-                //setting up X and Y axis title
-                GridLabelRenderer gridLabelRenderer = graphView.getGridLabelRenderer();
-                gridLabelRenderer.setHorizontalAxisTitle("Pixel position");
-                gridLabelRenderer.setVerticalAxisTitle("Pixel intensity");
-
                 // checking if the graphic contains series
                 if(!graphView.getSeries().isEmpty() && !isReferenceSaved){
                     graphView.removeAllSeries();
                 }
 
                 //adding series to graph
+                String xAxisTitle;
                 DataPoint[] values = new DataPoint[graphData.length];
-                for(int i = 0; i < graphData.length; i++){
-                    values[i] = new DataPoint(i,graphData[i]);
+                Bundle extras = getIntent().getExtras();
+                if(extras != null && extras.getDoubleArray("slope and intercept") != null){
+                    xAxisTitle = "Wavelength";
+                    double[] lineData = extras.getDoubleArray("slope and intercept");
+                    double slope = lineData[0];
+                    double intercept = lineData[1];
+                    for(int i = 0; i < graphData.length; i++){ //getting wavelength from position
+                        int x = (int) (i*slope + intercept);
+                        values[i] = new DataPoint(x,graphData[i]);
+                    }
+                }else{
+                    xAxisTitle = "Pixel position";
+                    for(int i = 0; i < graphData.length; i++){
+                        values[i] = new DataPoint(i,graphData[i]);
+                    }
                 }
 
                 //if the reference is saved and not the data, we remove previous data
@@ -494,6 +503,11 @@ public class CameraActivity extends Activity {
                         graphView.getSeries().remove(1);
                     }
                 }
+
+                //setting up X and Y axis title
+                GridLabelRenderer gridLabelRenderer = graphView.getGridLabelRenderer();
+                gridLabelRenderer.setHorizontalAxisTitle(xAxisTitle);
+                gridLabelRenderer.setVerticalAxisTitle("Intensity");
 
                 LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);
                 if(isReferenceSaved){

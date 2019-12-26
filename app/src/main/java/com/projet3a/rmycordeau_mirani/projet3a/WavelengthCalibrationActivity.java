@@ -3,6 +3,7 @@ package com.projet3a.rmycordeau_mirani.projet3a;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -85,6 +86,10 @@ public class WavelengthCalibrationActivity extends Activity {
                         return;
                     }
                 }
+                Intent intent = new Intent(WavelengthCalibrationActivity.this,CameraActivity.class);
+                double[] lineData = findSlopeAndIntercept();
+                intent.putExtra("slope and intercept",lineData);
+                startActivity(intent);
             }
         });
 
@@ -143,6 +148,15 @@ public class WavelengthCalibrationActivity extends Activity {
                 currentIndex = 3;
             }
         });
+    }
+
+    private double[] findSlopeAndIntercept() {
+        double[] result = new double[2];
+        double slope = (double)(436 - 612)/(wavelengthRaysPositions[0]-wavelengthRaysPositions[3]);
+        double intercept = 400.0;
+        result[0] = slope;
+        result[1] = intercept;
+        return result;
     }
 
     /**

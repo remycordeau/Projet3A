@@ -76,6 +76,7 @@ public class CameraActivity extends Activity {
     private ContextWrapper contextWrapper;
     private CameraHandler cameraHandler;
     private double[] graphData = null;
+    private double[] wavelengthCalibrationData = null;
     private HashMap<String,double[]> definitiveMeasures = new HashMap<>();
 
     @Override
@@ -148,9 +149,15 @@ public class CameraActivity extends Activity {
                         savePicture("Sample");
                         if(graphData != null && isReferenceSaved && isSampleSaved) {
                             Intent intent = new Intent(CameraActivity.this, AnalysisActivity.class);
-                            assert definitiveMeasures.containsKey("Reference") && definitiveMeasures.containsKey("Sample");
-                            intent.putExtra(GRAPH_DATA_KEY, definitiveMeasures);
-                            startActivity(intent);
+                            if(definitiveMeasures.containsKey("Reference") && definitiveMeasures.containsKey("Sample")){
+                                intent.putExtra(GRAPH_DATA_KEY, definitiveMeasures);
+                                if(wavelengthCalibrationData != null){
+                                    intent.putExtra(WavelengthCalibrationActivity.CALIBRATION_KEY,wavelengthCalibrationData);
+                                }
+                                startActivity(intent);
+                            }else{
+                                Toast.makeText(getApplicationContext(),"Missing measurement",Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }else{
                         Toast.makeText(CameraActivity.this,"You must first save the reference",Toast.LENGTH_SHORT).show();
@@ -481,11 +488,11 @@ public class CameraActivity extends Activity {
                 String xAxisTitle;
                 DataPoint[] values = new DataPoint[graphData.length];
                 Bundle extras = getIntent().getExtras();
-                if(extras != null && extras.getDoubleArray("slope and intercept") != null){
+                if(extras != null && extras.getDoubleArray(WavelengthCalibrationActivity.CALIBRATION_KEY) != null){
                     xAxisTitle = "Wavelength";
-                    double[] lineData = extras.getDoubleArray("slope and intercept");
-                    double slope = lineData[0];
-                    double intercept = lineData[1];
+                    wavelengthCalibrationData = extras.getDoubleArray(WavelengthCalibrationActivity.CALIBRATION_KEY);
+                    double slope = wavelengthCalibrationData[0];
+                    double intercept = wavelengthCalibrationData[1];
                     for(int i = 0; i < graphData.length; i++){ //getting wavelength from position
                         int x = (int) (i*slope + intercept);
                         values[i] = new DataPoint(x,graphData[i]);
@@ -562,7 +569,6 @@ public class CameraActivity extends Activity {
         try {
             captureBuilder.set(CaptureRequest.FLASH_MODE,CaptureRequest.FLASH_MODE_TORCH);
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
-            captureBuilder.set(CaptureRequest.CONTROL_AE_MODE,CaptureRequest.CONTROL_AE_MODE_OFF);
             captureBuilder.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF);
             captureBuilder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF);
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE,CaptureRequest.CONTROL_AE_MODE_OFF);

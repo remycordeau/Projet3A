@@ -29,6 +29,7 @@ import java.util.Arrays;
 public class WavelengthCalibrationActivity extends Activity {
 
     private static final String TAG = "Wavelength Calibration";
+    public static final String CALIBRATION_KEY = "Slope and intercept";
     private Button validateButton;
     private Button Button436;
     private Button Button488;
@@ -88,7 +89,7 @@ public class WavelengthCalibrationActivity extends Activity {
                 }
                 Intent intent = new Intent(WavelengthCalibrationActivity.this,CameraActivity.class);
                 double[] lineData = findSlopeAndIntercept();
-                intent.putExtra("slope and intercept",lineData);
+                intent.putExtra(CALIBRATION_KEY,lineData);
                 startActivity(intent);
             }
         });

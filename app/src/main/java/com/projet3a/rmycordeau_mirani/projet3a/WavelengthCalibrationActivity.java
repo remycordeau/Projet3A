@@ -153,9 +153,20 @@ public class WavelengthCalibrationActivity extends Activity {
 
     private double[] findSlopeAndIntercept() {
         double[] result = new double[2];
-        double slope = (double)(436 - 612)/(wavelengthRaysPositions[0]-wavelengthRaysPositions[3]);
+        int[] wavelengths = {436,488,546,612};
+        double [] slopes = new double[6];
+        for(int i = 0; i < wavelengths.length; i++){
+            for(int j = i+1; j < wavelengths.length; j++){
+                slopes[i] = (double)(wavelengths[i] - wavelengths[j])/(wavelengthRaysPositions[i]-wavelengthRaysPositions[j]);
+            }
+        }
         double intercept = 400.0;
-        result[0] = slope;
+        double slopeMean = 0.0;
+        for(int i = 0; i < slopes.length; i++){
+            slopeMean += slopes[i];
+        }
+        slopeMean /= slopes.length;
+        result[0] = slopeMean;
         result[1] = intercept;
         return result;
     }

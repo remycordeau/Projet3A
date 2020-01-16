@@ -12,17 +12,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/calibrationViewLayout"
         android:layout_width="wrap_content"
-        android:layout_height="183dp"
-        android:layout_alignParentTop="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextureView
-        android:id="@+id/texture"
-        android:layout_width="410dp"
-        android:layout_height="184dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -33,58 +23,67 @@
         android:id="@+id/validateCalButton"
         android:layout_width="139dp"
         android:layout_height="50dp"
-        android:layout_marginBottom="230dp"
+        android:layout_marginBottom="16dp"
         android:background="@color/buttonBackground"
         android:text="@string/validate_measure_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button4" />
-
-    <Button
-        android:id="@+id/Button436"
-        android:layout_width="60dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="66dp"
-        android:background="@color/buttonBackground"
-        android:text="436 nm"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/texture" />
+        app:layout_constraintHorizontal_bias="0.533"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/Button488"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="66dp"
+        android:layout_marginTop="480dp"
         android:background="@color/buttonBackground"
         android:text="488 nm"
         app:layout_constraintStart_toEndOf="@+id/Button436"
-        app:layout_constraintTop_toBottomOf="@+id/texture" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/Button436"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="480dp"
+        android:background="@color/buttonBackground"
+        android:text="436 nm"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/calibrationViewLayout" />
 
     <Button
         android:id="@+id/Button546"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="66dp"
+        android:layout_marginTop="480dp"
         android:background="@color/buttonBackground"
         android:text="546 nm"
         app:layout_constraintStart_toEndOf="@+id/Button488"
-        app:layout_constraintTop_toBottomOf="@+id/texture" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/Button612"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="66dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginTop="480dp"
+        android:layout_marginEnd="32dp"
         android:background="@color/buttonBackground"
         android:text="612 nm"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.533"
         app:layout_constraintStart_toEndOf="@+id/Button546"
-        app:layout_constraintTop_toBottomOf="@+id/texture" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextureView
+        android:id="@+id/texture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

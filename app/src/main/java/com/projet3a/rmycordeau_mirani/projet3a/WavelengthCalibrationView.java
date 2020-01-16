@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
@@ -54,7 +55,8 @@ public class WavelengthCalibrationView extends SurfaceView implements SurfaceHol
     private void initLine() {
         this.height = getHeight();
         this.width = getWidth();
-        this.line = new Line("Calibration line",this.width/2,0,this.width/2,this.height);
+        int heightOfLine= (int)Math.floor(0.78*this.height);
+        this.line = new Line("Calibration line",this.width/2,0,this.width/2,heightOfLine);
         ((WavelengthCalibrationActivity)getContext()).displayLine();
     }
 

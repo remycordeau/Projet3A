@@ -22,11 +22,14 @@ import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.Series;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,7 +38,9 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 
 /**
@@ -312,12 +317,16 @@ public class CameraActivity extends Activity {
         });
     }
 
+    /**
+     * Called when capture zone button is pressed. Modifies the UI accordingly.
+     * */
     private void endCalibration() {
 
         this.isCalibrating = false;
         this.cameraCalibrationView.eraseLines();
 
         findViewById(R.id.intensityGraph).setVisibility(View.VISIBLE);
+        findViewById(R.id.maxInGraph).setVisibility(View.VISIBLE);
         findViewById(R.id.calibrationBottom).setVisibility(View.INVISIBLE);
         findViewById(R.id.calibrationTop).setVisibility(View.INVISIBLE);
         findViewById(R.id.calibrationLeft).setVisibility(View.INVISIBLE);
@@ -330,6 +339,9 @@ public class CameraActivity extends Activity {
         this.cameraCalibrationView.getCaptureZone();
     }
 
+    /**
+     * Called when capture zone button is pressed. Modifies the UI accordingly.
+     * */
     private void enableCalibration() {
         this.isCalibrating = true;
 
@@ -337,6 +349,7 @@ public class CameraActivity extends Activity {
         if (graphView.getVisibility() == View.VISIBLE) {
             graphView.setVisibility(View.INVISIBLE);
         }
+        findViewById(R.id.maxInGraph).setVisibility(View.INVISIBLE);
         findViewById(R.id.calibrationBottom).setVisibility(View.VISIBLE);
         findViewById(R.id.calibrationTop).setVisibility(View.VISIBLE);
         findViewById(R.id.calibrationLeft).setVisibility(View.VISIBLE);
@@ -445,6 +458,9 @@ public class CameraActivity extends Activity {
         }
     }
 
+    /**
+     * Processes camera's raw data to get intensity for each pixel in the capture zone
+     * */
     protected void setImagesCapture() {
         if(null == cameraDevice) {
             Log.e(TAG, "cameraDevice is null");
@@ -483,7 +499,8 @@ public class CameraActivity extends Activity {
                 }
 
                 //adding series to graph
-                String xAxisTitle;
+                String xAxisTitle, maxText;
+                DataPoint maxValue = new DataPoint(0,0);
                 DataPoint[] values = new DataPoint[graphData.length];
                 Bundle extras = getIntent().getExtras();
                 if(extras != null && extras.getDoubleArray(WavelengthCalibrationActivity.CALIBRATION_KEY) != null){
@@ -494,12 +511,20 @@ public class CameraActivity extends Activity {
                     for(int i = 0; i < graphData.length; i++){ //getting wavelength from position
                         int x = (int) (i*slope + intercept);
                         values[i] = new DataPoint(x,graphData[i]);
+                        if(graphData[i] > maxValue.getY()){
+                            maxValue = values[i];
+                        }
                     }
+                    maxText = "Peak found at "+maxValue.getX()+" nm and is "+maxValue.getY();
                 }else{
                     xAxisTitle = "Pixel position";
                     for(int i = 0; i < graphData.length; i++){
                         values[i] = new DataPoint(i,graphData[i]);
+                        if(graphData[i] > maxValue.getY()){
+                            maxValue = values[i];
+                        }
                     }
+                    maxText = "Peak found at "+maxValue.getX()+" px and is "+maxValue.getY();
                 }
 
                 //if the reference is saved and not the data, we remove previous data
@@ -520,6 +545,11 @@ public class CameraActivity extends Activity {
                 }
                 graphView.addSeries(series);
 
+                TextView maxInGraph = findViewById(R.id.maxInGraph);
+                if(maxInGraph != null && maxValue.getY() != 0.0){
+                    maxInGraph.setText(maxText);
+                    maxInGraph.setVisibility(View.VISIBLE);
+                }
                 assert graphData != null;
                 runOnUiThread(new Runnable() {
                     @Override

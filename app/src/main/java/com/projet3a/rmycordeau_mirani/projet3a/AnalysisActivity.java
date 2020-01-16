@@ -25,7 +25,10 @@ import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 
 
 public class AnalysisActivity extends Activity implements GoogleApiClient.ConnectionCallbacks,
@@ -65,6 +68,8 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
 
     private void drawGraph(){
 
+        final GraphView graphView = findViewById(R.id.resultGraph);
+
         //getting sample and reference data
         double[] referenceData = this.graphData.get("Reference");
         double[] sampleData = this.graphData.get("Sample");
@@ -73,42 +78,67 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
         this.wavelengthCalibrationData = this.cameraActivityData.getDoubleArray(WavelengthCalibrationActivity.CALIBRATION_KEY);
 
         //creating graph series
+        String xAxisTitle, maxTransmissionText;
+        DataPoint maxTransmission = new DataPoint(0,0.0);
         DataPoint[] values = new DataPoint[referenceData.length];
         if(this.wavelengthCalibrationData != null){
+            xAxisTitle = "Wavelength (nm)";
             double slope = this.wavelengthCalibrationData[0];
             double intercept = this.wavelengthCalibrationData[1];
             for(int i = 0; i < referenceData.length; i++) {
                 int x = (int) (slope * i + intercept);
                 if (referenceData[i] != 0) {
                     values[i] = new DataPoint(x, sampleData[i] / referenceData[i]);
-                } else {
+                    if(values[i].getY() > maxTransmission.getY()){
+                        maxTransmission = values[i];
+                    }
+                }else{
                     values[i] = new DataPoint(x, 0);
                 }
             }
+            maxTransmissionText = "Peak found at "+maxTransmission.getX()+" nm and is "+maxTransmission.getY();
+
+            //setting manually X axis max and min bounds to see all points on graph
+            graphView.getViewport().setXAxisBoundsManual(true);
+            graphView.getViewport().setMaxX((referenceData.length-1)*slope + intercept);
+            graphView.getViewport().setMinX(intercept);
         }else{
+            xAxisTitle = "Pixel position";
             for(int i = 0; i < referenceData.length; i++){
                 if (referenceData[i] != 0) {
                     values[i] = new DataPoint(i, sampleData[i] / referenceData[i]);
+                    if(values[i].getY() > maxTransmission.getY()){
+                        maxTransmission = values[i];
+                    }
                 } else {
                     values[i] = new DataPoint(i, 0);
                 }
             }
+            maxTransmissionText = "Peak found at "+maxTransmission.getX()+" px and is "+maxTransmission.getY();
+
+            //setting manually X axis bound to see all points on graph
+            graphView.getViewport().setXAxisBoundsManual(true);
+            graphView.getViewport().setMaxX((double)referenceData.length-1);
         }
 
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);
-        final GraphView graphView = findViewById(R.id.resultGraph);
 
         //setting up X and Y axis title
         GridLabelRenderer gridLabelRenderer = graphView.getGridLabelRenderer();
-        gridLabelRenderer.setHorizontalAxisTitle("Pixel position");
+        gridLabelRenderer.setHorizontalAxisTitle(xAxisTitle);
         gridLabelRenderer.setVerticalAxisTitle("Transmission");
         graphView.addSeries(series);
+
+        TextView maxTransmissionView = findViewById(R.id.maxTransmission);
+        maxTransmissionView.setText(maxTransmissionText);
     }
 
     private void getLastKnownPosition() {
         Log.e(TAG,this.latitude+" "+this.longitude);
         this.lastKnownPosition = findViewById(R.id.lastKnownPosition);
-        String position = "Data measured at position ("+this.latitude+","+this.longitude+")";
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault());
+        String currentDateAndTime = sdf.format(new Date());
+        String position = "Data measured at position ("+this.latitude+","+this.longitude+") on "+currentDateAndTime;
         this.lastKnownPosition.setText(position);
         this.lastKnownPosition.setVisibility(View.VISIBLE);
     }

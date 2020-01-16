@@ -500,11 +500,11 @@ public class CameraActivity extends Activity {
 
                 //adding series to graph
                 String xAxisTitle, maxText;
-                DataPoint maxValue = new DataPoint(0,0);
+                DataPoint maxValue = new DataPoint(0,0.0);
                 DataPoint[] values = new DataPoint[graphData.length];
                 Bundle extras = getIntent().getExtras();
                 if(extras != null && extras.getDoubleArray(WavelengthCalibrationActivity.CALIBRATION_KEY) != null){
-                    xAxisTitle = "Wavelength";
+                    xAxisTitle = "Wavelength (nm)";
                     wavelengthCalibrationData = extras.getDoubleArray(WavelengthCalibrationActivity.CALIBRATION_KEY);
                     double slope = wavelengthCalibrationData[0];
                     double intercept = wavelengthCalibrationData[1];
@@ -516,6 +516,11 @@ public class CameraActivity extends Activity {
                         }
                     }
                     maxText = "Peak found at "+maxValue.getX()+" nm and is "+maxValue.getY();
+
+                    //setting manually X axis max and min bounds to see all points on graph
+                    graphView.getViewport().setXAxisBoundsManual(true);
+                    graphView.getViewport().setMaxX((graphData.length-1)*slope + intercept);
+                    graphView.getViewport().setMinX(intercept);
                 }else{
                     xAxisTitle = "Pixel position";
                     for(int i = 0; i < graphData.length; i++){
@@ -525,6 +530,10 @@ public class CameraActivity extends Activity {
                         }
                     }
                     maxText = "Peak found at "+maxValue.getX()+" px and is "+maxValue.getY();
+
+                    //setting manually X axis bound to see all points on graph
+                    graphView.getViewport().setXAxisBoundsManual(true);
+                    graphView.getViewport().setMaxX((double)graphData.length-1);
                 }
 
                 //if the reference is saved and not the data, we remove previous data
@@ -539,6 +548,7 @@ public class CameraActivity extends Activity {
                 gridLabelRenderer.setHorizontalAxisTitle(xAxisTitle);
                 gridLabelRenderer.setVerticalAxisTitle("Intensity");
 
+                //adding points to graph
                 LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);
                 if(isReferenceSaved){
                     series.setColor(Color.RED);

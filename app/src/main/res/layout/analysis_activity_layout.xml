@@ -8,26 +8,36 @@
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/resultGraph"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="267dp"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="24dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/lastKnownPosition"
-        android:layout_width="334dp"
-        android:layout_height="27dp"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/maxTransmission"
+        app:layout_constraintVertical_bias="0.216"
+        tools:text="test"
+        tools:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/maxTransmission"
+        android:layout_width="0dp"
+        android:layout_height="31dp"
+        android:layout_marginTop="20dp"
+        android:textAlignment="center"
+        android:textColor="#F44336"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/resultGraph"
-        app:layout_constraintVertical_bias="0.272"
-        tools:visibility="invisible" />
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

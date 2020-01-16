@@ -1,21 +1,20 @@
 package com.projet3a.rmycordeau_mirani.projet3a;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.*;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.HandlerThread;
-import android.support.constraint.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
+import android.text.method.NumberKeyListener;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
@@ -395,7 +394,7 @@ public class CameraActivity extends Activity {
     };
 
     /**
-     * opens the camera (if allowed) and sets image dimension for capture
+     * opens the camera (if allowed), sets image dimension for capture
      */
     private void openCamera() throws SecurityException{
         try{
@@ -470,7 +469,7 @@ public class CameraActivity extends Activity {
     /**
      * Updates the UI graph when a new picture is taken
      * */
-    private void updateUIGraph() {
+    private void updateUIGraph(){
 
         final GraphView graphView = findViewById(R.id.intensityGraph);
 

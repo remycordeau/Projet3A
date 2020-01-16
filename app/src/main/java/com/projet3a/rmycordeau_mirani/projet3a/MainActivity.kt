@@ -2,17 +2,25 @@ package com.projet3a.rmycordeau_mirani.projet3a
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.support.annotation.RequiresApi
+import android.provider.Settings
+import androidx.annotation.RequiresApi
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
+import android.content.Context.LOCATION_SERVICE
+import androidx.core.content.ContextCompat.getSystemService
+import android.location.LocationManager
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+
+
 
 
 class MainActivity : Activity() {
@@ -25,7 +33,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        enableGPS()
         var startCaptureButton: Button = findViewById(R.id.startCaptureButton)
         startCaptureButton.setOnClickListener{
             view -> startCameraActivity(view)
@@ -72,7 +80,7 @@ class MainActivity : Activity() {
         val version = Build.VERSION.SDK_INT
         if (version >= 23) {
             if (this.contextWrapper?.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_PERMISSIONS)
+                requestPermissions(arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_PERMISSIONS)
             } else {
                 this.permissionsGranted = true
             }
@@ -89,6 +97,16 @@ class MainActivity : Activity() {
                 }
                 return
             }
+        }
+    }
+
+    private fun enableGPS() {
+        val lm = applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if(lm.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            return
+        }else{
+            val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            startActivity(intent)
         }
     }
 }

@@ -642,11 +642,21 @@ public class CameraActivity extends Activity {
             File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),text+"_"+currentDateAndTime+".txt");
             try{
                 outputStream = new FileOutputStream(file,false);
-                for(int i = 0; i < this.graphData.length; i++){
-                    outputStream.write((i+",").getBytes());
-                    outputStream.write((this.graphData[i]+"\n").getBytes());
+                if(this.wavelengthCalibrationData != null){
+                    double slope = wavelengthCalibrationData[0];
+                    double intercept = wavelengthCalibrationData[1];
+                    for(int i = 0; i < graphData.length; i++) { //getting wavelength from position
+                        int x = (int) (i * slope + intercept);
+                        outputStream.write((x+",").getBytes());
+                        outputStream.write((this.graphData[i]+"\n").getBytes());
+                    }
+                }else{
+                    for(int i = 0; i < this.graphData.length; i++){
+                        outputStream.write((i+",").getBytes());
+                        outputStream.write((this.graphData[i]+"\n").getBytes());
+                    }
                 }
-            }finally {
+            }finally{
                 if(outputStream != null){
                     outputStream.close();
                     if(text.equals("Reference")){

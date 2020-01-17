@@ -1,16 +1,21 @@
 package com.projet3a.rmycordeau_mirani.projet3a;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -24,10 +29,16 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.Series;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 
 
@@ -44,7 +55,9 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
     private GoogleApiClient googleApiClient;
     private double latitude;
     private double longitude;
+    private int dataSize;
     private TextView lastKnownPosition;
+    private String position;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -61,11 +74,89 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
         }catch (NullPointerException e){
             e.printStackTrace();
         }
+        enableShareButton();
         this.fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         buildGoogleApiClient();
         this.googleApiClient.connect();
     }
 
+    /**
+     * Adds listener to the share button
+     * */
+    private void enableShareButton() {
+        Button shareButton = findViewById(R.id.shareButton);
+        if(shareButton != null){
+            shareButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    openEmail();
+                }
+            });
+        }
+    }
+
+    /**
+     * opens e-mail dialog box with file containing data as attachment
+    */
+    private void openEmail() {
+        File file = saveMeasurements();
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+        emailIntent.setType("vnd.android.cursor.dir/email");
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[] {""});
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Smart Spectro measurements");
+        if(this.position != null){
+            emailIntent.putExtra(Intent.EXTRA_TEXT, this.position);
+        }
+        if(file != null){
+            Uri uri = FileProvider.getUriForFile(AnalysisActivity.this, BuildConfig.APPLICATION_ID + ".provider",file);
+            emailIntent.putExtra(Intent.EXTRA_STREAM,uri);
+        }
+        try{
+            startActivity(emailIntent);
+        }catch(ActivityNotFoundException e){
+            Toast.makeText(this,"No email app found on this device",Toast.LENGTH_SHORT).show();
+            return;
+        }
+    }
+
+    /**
+     * Saves analysis activity's results in text file and returns file
+     * */
+    private File saveMeasurements(){
+        if(this.graphData == null){
+            Toast.makeText(AnalysisActivity.this,"Error while trying to save file : no data found",Toast.LENGTH_SHORT).show();
+            return null;
+        }else{
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH:mm:ss", Locale.getDefault());
+            String currentDateAndTime = sdf.format(new Date());
+            OutputStream outputStream;
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Transmission_" + currentDateAndTime + ".txt");
+            try {
+                outputStream = new FileOutputStream(file, false);
+
+                GraphView graphView = findViewById(R.id.resultGraph);
+                Series data = graphView.getSeries().get(0);
+                Iterator it = data.getValues(0, this.dataSize - 1);
+                while (it.hasNext()) {
+                    DataPoint dataPoint = (DataPoint) it.next();
+                    outputStream.write((dataPoint.getX() + ",").getBytes());
+                    outputStream.write((dataPoint.getY() + "\n").getBytes());
+                }
+
+                outputStream.close();
+                Toast.makeText(AnalysisActivity.this, "File successfully saved", Toast.LENGTH_SHORT).show();
+                return file;
+
+            }catch (IOException e){
+                e.printStackTrace();
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Draws transmission graph using data from camera activity
+     * */
     private void drawGraph(){
 
         final GraphView graphView = findViewById(R.id.resultGraph);
@@ -73,6 +164,7 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
         //getting sample and reference data
         double[] referenceData = this.graphData.get("Reference");
         double[] sampleData = this.graphData.get("Sample");
+        this.dataSize = referenceData.length;
 
         //getting optional wavelength calibration data
         this.wavelengthCalibrationData = this.cameraActivityData.getDoubleArray(WavelengthCalibrationActivity.CALIBRATION_KEY);
@@ -133,24 +225,35 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
         maxTransmissionView.setText(maxTransmissionText);
     }
 
+    /**
+     * Displays last known position
+     * */
     private void getLastKnownPosition() {
-        Log.e(TAG,this.latitude+" "+this.longitude);
         this.lastKnownPosition = findViewById(R.id.lastKnownPosition);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault());
         String currentDateAndTime = sdf.format(new Date());
-        String position = "Data measured at position ("+this.latitude+","+this.longitude+") on "+currentDateAndTime;
-        this.lastKnownPosition.setText(position);
+        this.position = "Data measured at position ("+this.latitude+","+this.longitude+") on "+currentDateAndTime;
+        this.lastKnownPosition.setText(this.position);
         this.lastKnownPosition.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Stops locations updates by google play services
+     * */
     private void stopLocationUpdates(){
         this.fusedLocationProviderClient.removeLocationUpdates(this.locationCallback);
     }
 
+    /**
+     * Starts locations updates by google play services
+     * */
     private void startLocationUpdates(){
         this.fusedLocationProviderClient.requestLocationUpdates(this.locationRequest,this.locationCallback, Looper.getMainLooper());
     }
 
+    /**
+     * Starts google api client to get location updates
+     * */
     private void buildGoogleApiClient() {
         this.googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -160,6 +263,9 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
     }
 
     @Override
+    /**
+     * defines location request and callback to get device position and starts location updates
+     * */
     public void onConnected(@Nullable Bundle bundle) {
         this.locationRequest = new LocationRequest();
         this.locationRequest.setInterval(1000);

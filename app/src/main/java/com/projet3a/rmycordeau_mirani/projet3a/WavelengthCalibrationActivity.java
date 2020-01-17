@@ -96,6 +96,7 @@ public class WavelengthCalibrationActivity extends Activity {
 
         this.Button436 = findViewById(R.id.Button436);
         assert this.Button436 != null;
+        this.Button436.setTextColor(Color.BLUE);
         this.Button436.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -110,6 +111,7 @@ public class WavelengthCalibrationActivity extends Activity {
 
         this.Button488 = findViewById(R.id.Button488);
         assert this.Button488 != null;
+        this.Button488.setTextColor(Color.argb(100,30,144,255));
         this.Button488.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -124,6 +126,7 @@ public class WavelengthCalibrationActivity extends Activity {
 
         this.Button546 = findViewById(R.id.Button546);
         assert this.Button546 != null;
+        this.Button546.setTextColor(Color.GREEN);
         this.Button546.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -138,6 +141,7 @@ public class WavelengthCalibrationActivity extends Activity {
 
         this.Button612 = findViewById(R.id.Button612);
         assert this.Button612 != null;
+        this.Button612.setTextColor(Color.RED);
         this.Button612.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -37,7 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="480dp"
-        android:background="@color/buttonBackground"
+        android:background="#FFFFFF"
         android:text="488 nm"
         app:layout_constraintStart_toEndOf="@+id/Button436"
         app:layout_constraintTop_toTopOf="parent" />
@@ -48,7 +48,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
         android:layout_marginTop="480dp"
-        android:background="@color/buttonBackground"
+        android:background="#FFFFFF"
         android:text="436 nm"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/calibrationViewLayout" />
@@ -59,7 +59,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="480dp"
-        android:background="@color/buttonBackground"
+        android:background="#FFFFFF"
         android:text="546 nm"
         app:layout_constraintStart_toEndOf="@+id/Button488"
         app:layout_constraintTop_toTopOf="parent" />
@@ -71,7 +71,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="480dp"
         android:layout_marginEnd="32dp"
-        android:background="@color/buttonBackground"
+        android:background="#FFFFFF"
         android:text="612 nm"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.533"

@@ -117,12 +117,12 @@ public class CameraCalibrationView extends SurfaceView implements SurfaceHolder.
     }
 
     /**
-     * returns the capture zone on the following format : [x,y,width,height]
+     * sets the capture zone on the following format : [x,y,width,height], called when the capture zone button is pressed
      * (x,y) is the intersection point between left line and top line
      * width is the distance between x and the x coordinate of the intersection point between right line and top line
      * height is the distance between y and the y coordinate of the intersection point between bottom line and left line
      * */
-    public int[] getCaptureZone(){
+    public void setCaptureZone(){
 
         int[] captureZone = new int[4];
 
@@ -136,7 +136,7 @@ public class CameraCalibrationView extends SurfaceView implements SurfaceHolder.
         List<Integer> bottomLeftIntersection = lines.get(0).getIntersection(lines.get(3));
         captureZone[3] = Math.abs(bottomLeftIntersection.get(1) - topLeftIntersection.get(1));
 
-        return captureZone;
+        AppParameters.getInstance().setCaptureZone(captureZone);
     }
 
     @Override

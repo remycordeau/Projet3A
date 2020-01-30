@@ -29,7 +29,6 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-import com.jjoe64.graphview.series.Series;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,7 +37,6 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
 
 
@@ -48,7 +46,6 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
     private static final String TAG = "Analysis Activity";
     private Bundle cameraActivityData;
     private HashMap<String,double[]> graphData;
-    private double[] wavelengthCalibrationData = null;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
@@ -56,6 +53,7 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
     private double latitude;
     private double longitude;
     private int dataSize;
+    private DataPoint[] values;
     private TextView lastKnownPosition;
     private String position;
 
@@ -134,11 +132,7 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
             try {
                 outputStream = new FileOutputStream(file, false);
 
-                GraphView graphView = findViewById(R.id.resultGraph);
-                Series data = graphView.getSeries().get(0);
-                Iterator it = data.getValues(0, this.dataSize - 1);
-                while (it.hasNext()) {
-                    DataPoint dataPoint = (DataPoint) it.next();
+                for(DataPoint dataPoint: this.values){
                     outputStream.write((dataPoint.getX() + ",").getBytes());
                     outputStream.write((dataPoint.getY() + "\n").getBytes());
                 }
@@ -166,51 +160,53 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
         double[] sampleData = this.graphData.get("Sample");
         this.dataSize = referenceData.length;
 
-        //getting optional wavelength calibration data
-        this.wavelengthCalibrationData = this.cameraActivityData.getDoubleArray(WavelengthCalibrationActivity.CALIBRATION_KEY);
-
         //creating graph series
         String xAxisTitle, maxTransmissionText;
         DataPoint maxTransmission = new DataPoint(0,0.0);
-        DataPoint[] values = new DataPoint[referenceData.length];
-        if(this.wavelengthCalibrationData != null){
+        this.values = new DataPoint[this.dataSize];
+        double slope = AppParameters.getInstance().getSlope();
+        double intercept = AppParameters.getInstance().getIntercept();
+        int begin = AppParameters.getInstance().getCaptureZone()[0];
+        int xMin = begin;
+        if(slope != 0.0 && intercept != 0.0){
             xAxisTitle = "Wavelength (nm)";
-            double slope = this.wavelengthCalibrationData[0];
-            double intercept = this.wavelengthCalibrationData[1];
             for(int i = 0; i < referenceData.length; i++) {
-                int x = (int) (slope * i + intercept);
+                double x = slope * begin + intercept;
                 if (referenceData[i] != 0) {
-                    values[i] = new DataPoint(x, sampleData[i] / referenceData[i]);
-                    if(values[i].getY() > maxTransmission.getY()){
-                        maxTransmission = values[i];
+                    this.values[i] = new DataPoint(x, sampleData[i] / referenceData[i]);
+                    if(this.values[i].getY() > maxTransmission.getY()){
+                        maxTransmission = this.values[i];
                     }
                 }else{
-                    values[i] = new DataPoint(x, 0);
+                    this.values[i] = new DataPoint(x, 0.0);
                 }
+                begin++;
             }
-            maxTransmissionText = "Peak found at "+maxTransmission.getX()+" nm and is "+maxTransmission.getY();
+            maxTransmissionText = "Peak found at "+Math.floor(maxTransmission.getX())+" nm and is "+maxTransmission.getY();
 
             //setting manually X axis max and min bounds to see all points on graph
             graphView.getViewport().setXAxisBoundsManual(true);
             graphView.getViewport().setMaxX((referenceData.length-1)*slope + intercept);
-            graphView.getViewport().setMinX(intercept);
+            graphView.getViewport().setMinX(xMin*slope+intercept);
         }else{
             xAxisTitle = "Pixel position";
             for(int i = 0; i < referenceData.length; i++){
                 if (referenceData[i] != 0) {
-                    values[i] = new DataPoint(i, sampleData[i] / referenceData[i]);
-                    if(values[i].getY() > maxTransmission.getY()){
-                        maxTransmission = values[i];
+                    this.values[i] = new DataPoint(begin, sampleData[i] / referenceData[i]);
+                    if(this.values[i].getY() > maxTransmission.getY()){
+                        maxTransmission = this.values[i];
                     }
                 } else {
-                    values[i] = new DataPoint(i, 0);
+                    this.values[i] = new DataPoint(begin, 0.0);
                 }
+                begin++;
             }
             maxTransmissionText = "Peak found at "+maxTransmission.getX()+" px and is "+maxTransmission.getY();
 
             //setting manually X axis bound to see all points on graph
             graphView.getViewport().setXAxisBoundsManual(true);
             graphView.getViewport().setMaxX((double)referenceData.length-1);
+            graphView.getViewport().setMinX((double)xMin);
         }
 
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(values);

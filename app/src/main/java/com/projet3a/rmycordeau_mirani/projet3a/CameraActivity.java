@@ -14,14 +14,12 @@ import android.os.Environment;
 import android.os.HandlerThread;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import android.text.method.NumberKeyListener;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,7 +27,6 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-import com.jjoe64.graphview.series.Series;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,9 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 
 /**
@@ -150,9 +145,6 @@ public class CameraActivity extends Activity {
                             Intent intent = new Intent(CameraActivity.this, AnalysisActivity.class);
                             if(definitiveMeasures.containsKey("Reference") && definitiveMeasures.containsKey("Sample")){
                                 intent.putExtra(GRAPH_DATA_KEY, definitiveMeasures);
-                                if(wavelengthCalibrationData != null){
-                                    intent.putExtra(WavelengthCalibrationActivity.CALIBRATION_KEY,wavelengthCalibrationData);
-                                }
                                 startActivity(intent);
                             }else{
                                 Toast.makeText(getApplicationContext(),"Missing measurement",Toast.LENGTH_SHORT).show();
@@ -313,7 +305,7 @@ public class CameraActivity extends Activity {
     }
 
     /**
-     * Called when capture zone button is pressed. Modifies the UI accordingly.
+     * Called when capture zone button is pressed. Modifies the UI accordingly and saves current capture zone.
      * */
     private void endCalibration() {
 
@@ -331,7 +323,7 @@ public class CameraActivity extends Activity {
         findViewById(R.id.TextLeft).setVisibility(View.INVISIBLE);
         findViewById(R.id.TextBottom).setVisibility(View.INVISIBLE);
 
-        this.cameraCalibrationView.getCaptureZone();
+        this.cameraCalibrationView.setCaptureZone();
     }
 
     /**
@@ -466,7 +458,7 @@ public class CameraActivity extends Activity {
         int height = this.textureView.getHeight();
 
         Bitmap bitmap = this.textureView.getBitmap(width,height);
-        int [] captureZone = this.cameraCalibrationView.getCaptureZone();
+        int [] captureZone = AppParameters.getInstance().getCaptureZone();
         Bitmap captureZoneBitmap = Bitmap.createBitmap(bitmap,captureZone[0],captureZone[1],captureZone[2],captureZone[3]);
 
         int[] rgb =  RGBDecoder.getRGBCode(captureZoneBitmap,captureZone[2],captureZone[3]);
@@ -494,40 +486,43 @@ public class CameraActivity extends Activity {
 
                 //adding series to graph
                 String xAxisTitle, maxText;
-                DataPoint maxValue = new DataPoint(0,0.0);
+                DataPoint maxValue = new DataPoint(0.0,0.0);
                 DataPoint[] values = new DataPoint[graphData.length];
-                Bundle extras = getIntent().getExtras();
-                if(extras != null && extras.getDoubleArray(WavelengthCalibrationActivity.CALIBRATION_KEY) != null){
+                double slope = AppParameters.getInstance().getSlope();
+                double intercept = AppParameters.getInstance().getIntercept();
+                int begin = AppParameters.getInstance().getCaptureZone()[0]; // xBegin for the capture zone (pixel 0 by default)
+                int xMin = begin;
+                if(slope != 0.0 && intercept != 0.0){
                     xAxisTitle = "Wavelength (nm)";
-                    wavelengthCalibrationData = extras.getDoubleArray(WavelengthCalibrationActivity.CALIBRATION_KEY);
-                    double slope = wavelengthCalibrationData[0];
-                    double intercept = wavelengthCalibrationData[1];
                     for(int i = 0; i < graphData.length; i++){ //getting wavelength from position
-                        int x = (int) (i*slope + intercept);
+                        double x = (begin*slope + intercept);
                         values[i] = new DataPoint(x,graphData[i]);
                         if(graphData[i] > maxValue.getY()){
                             maxValue = values[i];
                         }
+                        begin++;
                     }
-                    maxText = "Peak found at "+maxValue.getX()+" nm and is "+maxValue.getY();
+                    maxText = "Peak found at "+Math.floor(maxValue.getX())+" nm and is "+maxValue.getY();
 
                     //setting manually X axis max and min bounds to see all points on graph
                     graphView.getViewport().setXAxisBoundsManual(true);
                     graphView.getViewport().setMaxX((graphData.length-1)*slope + intercept);
-                    graphView.getViewport().setMinX(intercept);
+                    graphView.getViewport().setMinX(xMin*slope+intercept);
                 }else{
                     xAxisTitle = "Pixel position";
                     for(int i = 0; i < graphData.length; i++){
-                        values[i] = new DataPoint(i,graphData[i]);
+                        values[i] = new DataPoint(begin,graphData[i]);
                         if(graphData[i] > maxValue.getY()){
                             maxValue = values[i];
                         }
+                        begin++;
                     }
                     maxText = "Peak found at "+maxValue.getX()+" px and is "+maxValue.getY();
 
                     //setting manually X axis bound to see all points on graph
                     graphView.getViewport().setXAxisBoundsManual(true);
                     graphView.getViewport().setMaxX((double)graphData.length-1);
+                    graphView.getViewport().setMinX((double) xMin);
                 }
 
                 //if the reference is saved and not the data, we remove previous data
@@ -636,18 +631,21 @@ public class CameraActivity extends Activity {
             File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),text+"_"+currentDateAndTime+".txt");
             try{
                 outputStream = new FileOutputStream(file,false);
-                if(this.wavelengthCalibrationData != null){
-                    double slope = wavelengthCalibrationData[0];
-                    double intercept = wavelengthCalibrationData[1];
+                double slope = AppParameters.getInstance().getSlope();
+                double intercept = AppParameters.getInstance().getIntercept();
+                int begin = AppParameters.getInstance().getCaptureZone()[0];
+                if(slope != 0.0 && intercept != 0.0){
                     for(int i = 0; i < graphData.length; i++) { //getting wavelength from position
-                        int x = (int) (i * slope + intercept);
+                        double x =  begin * slope + intercept;
                         outputStream.write((x+",").getBytes());
                         outputStream.write((this.graphData[i]+"\n").getBytes());
+                        begin++;
                     }
                 }else{
                     for(int i = 0; i < this.graphData.length; i++){
-                        outputStream.write((i+",").getBytes());
+                        outputStream.write((begin+",").getBytes());
                         outputStream.write((this.graphData[i]+"\n").getBytes());
+                        begin++;
                     }
                 }
             }finally{

@@ -158,14 +158,21 @@ public class WavelengthCalibrationActivity extends Activity {
                 slopes[i] = (double)(wavelengths[i] - wavelengths[j])/(wavelengthRaysPositions[i]-wavelengthRaysPositions[j]);
             }
         }
-        double intercept = 400.0;
+
         double slopeMean = 0.0;
         for(int i = 0; i < slopes.length; i++){
             slopeMean += slopes[i];
         }
         slopeMean /= slopes.length;
+
+        double intercept = 0.0;
+        for(int i = 0; i < wavelengths.length; i++){
+            intercept += wavelengths[i] - slopeMean*wavelengthRaysPositions[i];
+        }
+
         result[0] = slopeMean;
-        result[1] = intercept;
+        result[1] = intercept/wavelengths.length;
+        Log.e(TAG,""+result[0]+" "+result[1]);
         return result;
     }
 
@@ -313,6 +320,7 @@ public class WavelengthCalibrationActivity extends Activity {
     public void onPause(){
         super.onPause();
         Log.e(TAG,"On Pause");
+        this.cameraDevice.close();
         this.textureView = null;
     }
 
@@ -324,6 +332,9 @@ public class WavelengthCalibrationActivity extends Activity {
             this.textureView = findViewById(R.id.texture);
             assert this.textureView != null;
             this.textureView.setSurfaceTextureListener(this.textureListener);
+            if(this.textureView.isAvailable()){
+                textureListener.onSurfaceTextureAvailable(this.textureView.getSurfaceTexture(),this.textureView.getWidth(),this.textureView.getHeight());
+            }
         }
     }
 }

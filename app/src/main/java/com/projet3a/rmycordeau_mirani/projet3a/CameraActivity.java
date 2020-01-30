@@ -669,6 +669,7 @@ public class CameraActivity extends Activity {
        super.onPause();
        Log.e(TAG,"On Pause");
        this.textureView = null;
+       this.cameraDevice.close();
     }
 
     @Override
@@ -679,6 +680,9 @@ public class CameraActivity extends Activity {
             this.textureView = findViewById(R.id.texture);
             assert this.textureView != null;
             this.textureView.setSurfaceTextureListener(this.textureListener);
+            if(this.textureView.isAvailable()){
+                textureListener.onSurfaceTextureAvailable(this.textureView.getSurfaceTexture(),this.textureView.getWidth(),this.textureView.getHeight());
+            }
         }
     }
 }

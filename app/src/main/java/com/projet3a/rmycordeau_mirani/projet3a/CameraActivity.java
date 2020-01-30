@@ -21,6 +21,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -100,15 +101,9 @@ public class CameraActivity extends Activity {
     }
 
     /**
-     * Adds listeners on various UI components
+     * Adds listeners on various UI components, the listener to the texture is added in the onResume method
      */
     private void enableListeners() {
-
-        /* Adding listener to texture */
-
-        this.textureView = findViewById(R.id.texture);
-        assert this.textureView != null;
-        this.textureView.setSurfaceTextureListener(this.textureListener);
 
         /* Adding listeners to the buttons */
 
@@ -380,7 +375,6 @@ public class CameraActivity extends Activity {
 
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-
         }
     };
 
@@ -674,8 +668,17 @@ public class CameraActivity extends Activity {
     public void onPause(){
        super.onPause();
        Log.e(TAG,"On Pause");
-       if(this.cameraDevice != null){
-           this.cameraDevice.close();
-       }
+       this.textureView = null;
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        Log.e(TAG,"On Resume");
+        if(this.textureView == null){
+            this.textureView = findViewById(R.id.texture);
+            assert this.textureView != null;
+            this.textureView.setSurfaceTextureListener(this.textureListener);
+        }
     }
 }

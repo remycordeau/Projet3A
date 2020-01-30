@@ -68,12 +68,6 @@ public class WavelengthCalibrationActivity extends Activity {
      */
     private void enableListeners() {
 
-        /* Adding listener to texture */
-
-        this.textureView = findViewById(R.id.texture);
-        assert this.textureView != null;
-        this.textureView.setSurfaceTextureListener(this.textureListener);
-
         /* Adding listeners to the buttons */
 
         this.validateButton = findViewById(R.id.validateCalButton);
@@ -319,8 +313,17 @@ public class WavelengthCalibrationActivity extends Activity {
     public void onPause(){
         super.onPause();
         Log.e(TAG,"On Pause");
-        if(this.cameraDevice != null){
-            this.cameraDevice.close();
+        this.textureView = null;
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        Log.e(TAG,"On Resume");
+        if(this.textureView == null){
+            this.textureView = findViewById(R.id.texture);
+            assert this.textureView != null;
+            this.textureView.setSurfaceTextureListener(this.textureListener);
         }
     }
 }

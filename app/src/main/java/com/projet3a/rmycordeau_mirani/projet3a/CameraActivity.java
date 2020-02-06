@@ -463,7 +463,8 @@ public class CameraActivity extends Activity {
 
         int[] rgb =  RGBDecoder.getRGBCode(captureZoneBitmap,captureZone[2],captureZone[3]);
         double[] intensity = RGBDecoder.getImageIntensity(rgb);
-        this.graphData = RGBDecoder.computeIntensityMean(intensity,captureZone[2],captureZone[3]);
+        //this.graphData = RGBDecoder.computeIntensityMean(intensity,captureZone[2],captureZone[3]);
+        this.graphData = RGBDecoder.getMaxIntensity(intensity,captureZone[2]);
         saveCurrentMeasure();
         updateUIGraph();
     }

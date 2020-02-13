@@ -28,13 +28,12 @@ public class RGBDecoder {
 
     public static double[] getImageIntensity(int[] rgb){
         double [] intensity = new double[rgb.length];
-        double sRed,sGreen,sBlue;
+        double red,green,blue;
         for(int i = 0; i < intensity.length; i++){
-            //sRed = RGBDecoder.getLinearValue(Color.red(rgb[i]));
-            //sBlue = RGBDecoder.getLinearValue(Color.blue(rgb[i]));
-            //sGreen = RGBDecoder.getLinearValue(Color.green(rgb[i]));
-            intensity[i] = (0.2126* Color.red(rgb[i])+0.7152*Color.green(rgb[i])+0.0722*Color.blue(rgb[i]));
-            //intensity[i] = (0.2126*sRed+0.7152*sGreen+0.0722*sBlue);
+            red = RGBDecoder.getLinearValue(Color.red(rgb[i])/255);
+            blue = RGBDecoder.getLinearValue(Color.blue(rgb[i])/255);
+            green = RGBDecoder.getLinearValue(Color.green(rgb[i])/255);
+            intensity[i] = (0.2126*red+0.7152*green+0.0722*blue);
         }
         return intensity;
     }

@@ -161,10 +161,6 @@ public class WavelengthCalibrationActivity extends Activity {
             }
         }
 
-        for(int i = 0; i < slopes.length; i++){
-            Log.e(TAG,""+slopes[i]);
-        }
-
         double slopeMean = 0.0;
         for(int i = 0; i < slopes.length; i++){
             slopeMean += slopes[i];

@@ -153,10 +153,16 @@ public class WavelengthCalibrationActivity extends Activity {
         double[] result = new double[2];
         int[] wavelengths = {436,488,546,612};
         double [] slopes = new double[6];
-        for(int i = 0; i < wavelengths.length; i++){
-            for(int j = i+1; j < wavelengths.length; j++){
-                slopes[i] = (double)(wavelengths[i] - wavelengths[j])/(wavelengthRaysPositions[i]-wavelengthRaysPositions[j]);
+        int count = 0;
+        for(int i = 0; i < wavelengths.length && count < slopes.length; i++){
+            for(int j = i+1; j < wavelengths.length && count < slopes.length; j++){
+                slopes[count] = (double)(wavelengths[i] - wavelengths[j])/(wavelengthRaysPositions[i]-wavelengthRaysPositions[j]);
+                count++;
             }
+        }
+
+        for(int i = 0; i < slopes.length; i++){
+            Log.e(TAG,""+slopes[i]);
         }
 
         double slopeMean = 0.0;

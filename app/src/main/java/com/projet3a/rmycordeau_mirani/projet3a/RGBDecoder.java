@@ -28,24 +28,10 @@ public class RGBDecoder {
 
     public static double[] getImageIntensity(int[] rgb){
         double [] intensity = new double[rgb.length];
-        double red,green,blue;
         for(int i = 0; i < intensity.length; i++){
-            red = RGBDecoder.getLinearValue(Color.red(rgb[i])/255);
-            blue = RGBDecoder.getLinearValue(Color.blue(rgb[i])/255);
-            green = RGBDecoder.getLinearValue(Color.green(rgb[i])/255);
-            intensity[i] = (0.2126*red+0.7152*green+0.0722*blue);
+            intensity[i] = 0.2126*Color.red(rgb[i])+0.7152*Color.green(rgb[i])+0.0722*Color.blue(rgb[i]);
         }
         return intensity;
-    }
-
-    public static double getLinearValue(int channel){
-        if(channel <= 0.04045){
-            return channel/12.92;
-        }else{
-            double a = 0.055;
-            double d = (channel + a)/(1 + a);
-            return Math.pow(d,2.4);
-        }
     }
 
     /**

@@ -75,6 +75,9 @@ class MainActivity : Activity() {
         finish()
     }
 
+    /**
+     * asks app permissions to user
+     * */
     @RequiresApi(Build.VERSION_CODES.M)
     fun askPermissions() {
         val version = Build.VERSION.SDK_INT
@@ -87,6 +90,9 @@ class MainActivity : Activity() {
         }
     }
 
+    /**
+     * Checks whether user has granted permissions for the app
+     * */
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
             REQUEST_PERMISSIONS -> {
@@ -100,6 +106,9 @@ class MainActivity : Activity() {
         }
     }
 
+    /**
+     * Displays GPS activation window on phone if it is not turned on
+     * */
     private fun enableGPS() {
         val lm = applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if(lm.isProviderEnabled(LocationManager.GPS_PROVIDER)){

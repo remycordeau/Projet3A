@@ -2,7 +2,6 @@ package com.projet3a.rmycordeau_mirani.projet3a;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.util.Log;
 
 /**
  * Created by Rémy Cordeau-Mirani on 20/09/2019.
@@ -10,6 +9,9 @@ import android.util.Log;
 
 public class RGBDecoder {
 
+    /**
+     * Gets for each pixel of Bitmap its RGB encoding
+     **/
     public static int[] getRGBCode(Bitmap bitmap, int width, int height) {
         int[] rgb = new int[width * height];
         bitmap.getPixels(rgb, 0, width, 0, 0, width, height);
@@ -26,6 +28,9 @@ public class RGBDecoder {
         return rgb;
     }
 
+    /**
+     * Computes for each pixel in array the intensity from its RGB encoding
+     * */
     public static double[] getImageIntensity(int[] rgb){
         double [] intensity = new double[rgb.length];
         for(int i = 0; i < intensity.length; i++){
@@ -53,13 +58,16 @@ public class RGBDecoder {
         return intensityMean;
     }
 
+    /**
+     * Gets maximum intensity for each column of the frame
+     * */
     public static double[] getMaxIntensity(double [] intensity, int width){
         double [] maxIntensity = new double[width];
         double maxValue = 0;
         int index;
         for(int i = 0; i < maxIntensity.length; i++){
             index = i;
-            while(index < intensity.length){ //if the index is defined, we add it to the mean
+            while(index < intensity.length){ //if the index is defined, we check if it is greater than the current maximum
                 if(intensity[index] > maxValue){
                     maxValue = intensity[index];
                 }

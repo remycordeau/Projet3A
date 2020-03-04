@@ -30,13 +30,18 @@ public class Line {
     public int getXEnd(){
         return this.xEnd;
     }
+
     public int getYBegin(){
         return this.yBegin;
     }
+
     public int getYEnd(){
         return this.yEnd;
     }
 
+    /**
+     * Returns whether line is horizontal or vertical
+     * */
     public String getLineType(){
 
         if(this.xBegin == this.xEnd){
@@ -48,16 +53,25 @@ public class Line {
         }
     }
 
+    /**
+     * translates line on x axis
+     * */
     public void translateLineOnX(int translateX){
         this.xBegin += translateX;
         this.xEnd += translateX;
     }
 
+    /**
+     * translates line on y axis
+     * */
     public void translateLineOnY(int translateY){
         this.yBegin += translateY;
         this.yEnd += translateY;
     }
 
+    /**
+     * Returns intersection point between this line and an other
+     * */
     public List<Integer> getIntersection(Line line){
 
         List<Integer> intersectionPoint = new ArrayList<>();

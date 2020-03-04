@@ -48,6 +48,9 @@ public class CameraCalibrationView extends SurfaceView implements SurfaceHolder.
         this.surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
     }
 
+    /**
+     * initializes the four lines of capture zone
+     * */
     private void initLines() {
         this.width = getWidth();
         this.height = getHeight();
@@ -61,6 +64,9 @@ public class CameraCalibrationView extends SurfaceView implements SurfaceHolder.
         lines.add(new Line("Bottom line",0,height,width,height));
     }
 
+    /**
+     * Draws lines on texture view
+     * */
     public void drawLines(){
         if(lines.size() == 0){
             initLines();
@@ -72,12 +78,18 @@ public class CameraCalibrationView extends SurfaceView implements SurfaceHolder.
         surfaceHolder.unlockCanvasAndPost(this.canvas);
     }
 
+    /**
+     * Erases lines on texture view
+     * */
     public void eraseLines(){
         this.canvas = this.surfaceHolder.lockCanvas();
         this.canvas.drawRect(0,0,width,height,clearPaint);
         this.surfaceHolder.unlockCanvasAndPost(this.canvas);
     }
 
+    /**
+     * Moves lines on texture view
+     * */
     public void moveLine(String lineName, int shift){
 
         Line target = null;

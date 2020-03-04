@@ -123,7 +123,7 @@ public class CameraActivity extends Activity {
             @Override
             public void onClick(View view) {
                 try {
-                    if(isCalibrating) return;
+                    if(isCalibrating || isReferenceSaved) return;
                     savePicture("Reference");
                 }catch (IOException e){
                     Log.e(TAG,e.toString());
@@ -457,9 +457,9 @@ public class CameraActivity extends Activity {
         int width = this.textureView.getWidth();
         int height = this.textureView.getHeight();
 
-        Bitmap bitmap = this.textureView.getBitmap(width,height);
+        Bitmap bitmap = this.textureView.getBitmap(width,height); // getting raw data
         int [] captureZone = AppParameters.getInstance().getCaptureZone();
-        Bitmap captureZoneBitmap = Bitmap.createBitmap(bitmap,captureZone[0],captureZone[1],captureZone[2],captureZone[3]);
+        Bitmap captureZoneBitmap = Bitmap.createBitmap(bitmap,captureZone[0],captureZone[1],captureZone[2],captureZone[3]); // getting raw data inside capture zone only
 
         int[] rgb =  RGBDecoder.getRGBCode(captureZoneBitmap,captureZone[2],captureZone[3]);
         double[] intensity = RGBDecoder.getImageIntensity(rgb);
@@ -643,7 +643,7 @@ public class CameraActivity extends Activity {
                 double slope = AppParameters.getInstance().getSlope();
                 double intercept = AppParameters.getInstance().getIntercept();
                 int begin = AppParameters.getInstance().getCaptureZone()[0];
-                if(slope != 0.0 && intercept != 0.0){
+                if(slope != 0.0 && intercept != 0.0){ //if wavelength calibration has been done
                     for(int i = 0; i < graphData.length; i++) { //getting wavelength from position
                         double x =  begin * slope + intercept;
                         outputStream.write((x+",").getBytes());
@@ -683,7 +683,7 @@ public class CameraActivity extends Activity {
     public void onResume(){
         super.onResume();
         Log.e(TAG,"On Resume");
-        if(this.textureView == null){
+        if(this.textureView == null){ // prevents camera preview from freezing when app is resuming
             this.textureView = findViewById(R.id.texture);
             assert this.textureView != null;
             this.textureView.setSurfaceTextureListener(this.textureListener);

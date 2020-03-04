@@ -32,20 +32,20 @@ public class WavelengthCalibrationView extends SurfaceView implements SurfaceHol
             this.surfaceHolder.addCallback(this);
         }
 
-        if(this.paint == null){
+        if(this.paint == null){ // paint to draw lines
             this.paint = new Paint();
             this.paint.setColor(Color.RED);
             this.paint.setStrokeWidth(5);
             this.paint.setStyle(Paint.Style.STROKE);
         }
 
-        if(this.clearPaint == null){
+        if(this.clearPaint == null){ // paint to erase lines
             this.clearPaint = new Paint();
             this.clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         }
 
-        this.setZOrderOnTop(true);
-        this.surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
+        this.setZOrderOnTop(true); // this textureView is above
+        this.surfaceHolder.setFormat(PixelFormat.TRANSPARENT); // and is transparent
 
     }
 

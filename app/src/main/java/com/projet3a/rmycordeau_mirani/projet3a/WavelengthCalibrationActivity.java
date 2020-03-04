@@ -149,6 +149,9 @@ public class WavelengthCalibrationActivity extends Activity {
         });
     }
 
+    /**
+     * Computes slopes and intercept from calibration lines position and known wavelength values
+     * */
     private double[] findSlopeAndIntercept() {
         double[] result = new double[2];
         int[] wavelengths = {436,488,546,612};
@@ -329,7 +332,7 @@ public class WavelengthCalibrationActivity extends Activity {
     public void onResume(){
         super.onResume();
         Log.e(TAG,"On Resume");
-        if(this.textureView == null){
+        if(this.textureView == null){ // prevents camera preview from freezing when app is resumed
             this.textureView = findViewById(R.id.texture);
             assert this.textureView != null;
             this.textureView.setSurfaceTextureListener(this.textureListener);

@@ -128,6 +128,14 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HH:mm:ss", Locale.getDefault());
             String currentDateAndTime = sdf.format(new Date());
             OutputStream outputStream;
+            File directory = new File(Environment.getExternalStorageDirectory()+"/Documents"); //check whether Documents directory exists, if not, we create it
+            if(!directory.exists()){
+                boolean result = directory.mkdirs();
+                if(!result){
+                    Toast.makeText(this,"Unable to create directory",Toast.LENGTH_SHORT).show();
+                    return null;
+                }
+            }
             File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Transmission_" + currentDateAndTime + ".txt");
             try {
                 outputStream = new FileOutputStream(file, false);
@@ -182,7 +190,7 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
                 }
                 begin++;
             }
-            maxTransmissionText = "Peak found at "+Math.floor(maxTransmission.getX())+" nm and is "+maxTransmission.getY();
+            maxTransmissionText = "Peak found at "+Math.floor(maxTransmission.getX())+" nm and is "+Math.floor(maxTransmission.getY());
 
             //setting manually X axis max and min bounds to see all points on graph
             graphView.getViewport().setXAxisBoundsManual(true);
@@ -201,7 +209,7 @@ public class AnalysisActivity extends Activity implements GoogleApiClient.Connec
                 }
                 begin++;
             }
-            maxTransmissionText = "Peak found at "+maxTransmission.getX()+" px and is "+maxTransmission.getY();
+            maxTransmissionText = "Peak found at "+maxTransmission.getX()+" px and is "+Math.floor(maxTransmission.getY());
 
             //setting manually X axis bound to see all points on graph
             graphView.getViewport().setXAxisBoundsManual(true);
